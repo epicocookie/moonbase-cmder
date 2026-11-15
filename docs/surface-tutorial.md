@@ -9,15 +9,19 @@ python -m http.server 8127 --bind 127.0.0.1
 
 Open [the intro and mission menu](http://127.0.0.1:8127/). Choose Mission 1 in 3D or open its 2D dashboard. The header lets you switch views without losing progress in this tab. A finished expedition returns to selection with its journal and replay options. Stop the server with Ctrl+C. The 3D page requires WebGL 2 and internet access to load Three.js 0.187.0. No build step or npm install is needed.
 
-Choose **Begin expedition**. Walk with **WASD**, press **Shift** (or click the scene) to lock the mouse for looking around, and press **Shift** again (or Esc) to free it for clicking buttons, or drag to look. Press **V** to switch between helmet and third-person views. On touchscreens, use the arrow pad, drag the scene to look, and tap the view button.
+Choose **Begin expedition**. Walk with **WASD** and use **Shift** or the **Shift lock** button to capture the mouse for looking around. **Q** or **Esc** releases the cursor immediately. With the cursor free, hold and drag on the scene to look. **V** switches between helmet and third-person views.
 
-On touchscreens, hold an arrow on the movement pad to move continuously, or tap it for a small step.
+Press **Space** for a floaty lunar jump, approximately 1.5 metres high with a 2.7-second flight. The simplified jump uses lunar gravity of 1.62 m/s². A jump starts from the ground, and steering still works in the air. Modal conversations pause movement. On touchscreens, use the movement pad, drag to look, and tap **Jump**.
 
-The **Shift lock on/off** button shows whether the mouse is locked, in both views, and clicking it switches too. In third person, a locked mouse also gives an over-the-shoulder view. The astronaut faces your aim while **A/D** strafe and **S** backs up. Toggle it again for free orbit.
+The **Shift lock on/off** button reflects mouse capture. In third person, capture also enables the shoulder camera, with the astronaut facing your aim. Release the cursor to return to free orbit. Saved runs restore the selected POV with the cursor free.
 
-Pip is the small rover at the landing point. The **Shaded crater** scanner is at `(8, 3)` and the **Sunlit reference** at `(5, 6)`. Walk close and press **E** or tap the on-screen interaction button. Either scan can come first. Aim the center reticle at the instrument until its ring turns green, then press E or tap Scan. Arrow keys also adjust your aim. A three-second sweep collects the reading. Canceling allows a retry, and repeated scans reopen the recorded observation.
+An optional **American flag** spot is near the habitat at `(-6.5, 5.5)`. Walk close, interact, and confirm **Plant American flag**. The pole settles into the ground; a horizontal support holds the creased fabric open. The flag stays for this browser tab across both 3D missions. With storage unavailable it stays on the current page. Reduced-motion mode places it immediately.
 
-After both scans, use **Communications** at `(0, -4)` to review both readings, select **Ready to send**, and watch the transmission. After Earth acknowledges the finding, choose **View discovery journal**. Mission 1 has no resource costs, countdown, or failure state. **Ask Pip · Hint** identifies the next destination and the amber marker points toward it. **Return to Pip** resets position and aim without clearing findings. **Field journal** reopens your observations at any time.
+Pip is the small rover at the landing point. Visit the **Shaded crater** sample at `(8, 3)` and the **Sunlit reference** at `(5, 6)` in either order. Aim at a marked sample, press **E** or tap the interaction button, then select **Place scanner**. Your equipment unfolds onto the ground and automatically scans the sample for four seconds. Canceling placement leaves the scanner in your kit. Canceling after placement leaves the equipment on site, ready to **Resume scan**. Finished scanners remain beside their samples.
+
+Once both readings arrive, follow the marker to the **Field screen** at `(3, 0)`. Select **Place screen on the ground** to unfold its kickstand and connect both scanners. Open the screen to compare the sample visuals and simulated reading patterns, then select **Evidence reviewed · prepare report**. The screen remains on the ground and can be reopened.
+
+Use **Communications** at `(0, -4)` to select **Send reviewed finding**. After Earth acknowledges the transmission, choose **View discovery journal**. **Ask Pip · Hint** identifies the next task. **Return to Pip** resets position and aim while keeping equipment and findings. **Field journal** reopens your observations at any time.
 
 The 2D dashboard uses the same controller, scan results, dialogue, and report gate. The standalone classic page retains the original survival rules.
 
