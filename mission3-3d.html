@@ -93,23 +93,35 @@
       flex-wrap: wrap;
       margin-top: 14px;
     }
+    .m3-dialog details { margin:14px 0; color:#bad4df; font-size:13px; }
+    .m3-dialog summary { cursor:pointer; padding:6px 0; }
     .m3-dialog-actions button {
       cursor: pointer;
     }
+    body[data-mission="3"] .objective { top:145px; }
+    body[data-mission="3"] .waypoint { top:190px; }
+    .m3-dialog .pip-avatar { float:right; margin:8px; }
+    .m3-dialog { max-height:85dvh; overflow-y:auto; }
+    @media(max-width:720px) {
+      body[data-mission="3"] .objective { top:180px; }
+      body[data-mission="3"] .waypoint { top:225px; }
+      .m3-hud-bars { width:100%; }
+    }
   </style>
   <script type="importmap">
-    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}
+    {"imports":{"three":"./vendor/three/three.module.js"}}
   </script>
   <script src="shared/mission3.js" defer></script>
+  <script src="shared/surface-run.js" defer></script>
   <script type="module">
     import("./surface/mission3-scene.js").catch(error => {
       document.querySelector("#loading").textContent =
-        "The 3D surface is unavailable (check your internet connection for Three.js).";
+        "The cave scene could not load. Check your connection, reload, or return to mission selection.";
       console.error(error);
     });
   </script>
 </head>
-<body data-phase="briefing">
+<body data-phase="briefing" data-expedition="3d" data-mission="3">
   <main id="scene" aria-label="Interactive lunar cave expedition"></main>
 
   <header>
@@ -121,31 +133,28 @@
   </header>
 
   <section id="briefing">
-    <small class="eyebrow">MISSION 03 / LUNAR LAVA TUBE (PROTOTYPE)</small>
-    <h1>Into the<br><em>lava tube.</em></h1>
-    <p>
-      Manage <strong>4 shifts</strong> with <strong>5/9 energy</strong> and <strong>3/3 oxygen</strong>.
-      Locate the collapsed cave pit, collect <strong>3 structural scans</strong> inside
-      (<strong>2 energy</strong> each), and return to Surface Communications to send 1 report.
-    </p>
-    <button id="deploy" class="primary" disabled>Begin cave expedition <b>↘</b></button>
-    <p id="loading" role="status">Preparing lunar cave sector…</p>
-    <p class="training-note">Standalone Mission 3 preview · simulated readings · real NASA pit science</p>
+    <small class="eyebrow">MISSION 03 / MOON CAVE</small>
+    <h1>Explore a<br><em>Moon cave.</em></h1>
+    <p>Could a cave shelter future astronauts? Explore with Pip, find three clues, and bring them home.</p>
+    <button id="deploy" class="primary" disabled>Let's explore <b>↘</b></button>
+    <p id="loading" role="status">Getting ready…</p>
+    <p class="training-note">A pretend expedition inspired by real NASA science</p>
     <p><a class="credits-link" href="./credits.html">AI-assisted · Credits</a></p>
   </section>
 
+  <button id="skip" hidden>Skip descent ↓</button>
   <section id="live" hidden aria-label="Mission 3 instruments">
     <div id="telemetry">
-      <strong id="scan-count">0 / 3 cave scans</strong>
-      <span id="shift-badge" class="m3-shift-badge">SHIFT 1 / 4 · SUNLIGHT (+4 ENERGY)</span>
+      <strong id="scan-count">0 / 3 clues found</strong>
+      <span id="shift-badge" class="m3-shift-badge">FIND THE CAVE</span>
       <div class="m3-hud-bars">
         <div class="m3-bar-row">
-          <span>Energy</span>
+          <span>Battery</span>
           <div class="m3-bar-track"><div id="m3-energy-bar" class="m3-bar-fill m3-bar-energy" style="width:55.5%"></div></div>
           <strong id="m3-energy-text">5 / 9</strong>
         </div>
         <div class="m3-bar-row">
-          <span>Oxygen</span>
+          <span title="Oxygen for your suit">Air</span>
           <div class="m3-bar-track"><div id="m3-oxygen-bar" class="m3-bar-fill m3-bar-oxygen" style="width:100%"></div></div>
           <strong id="m3-oxygen-text">3 / 3</strong>
         </div>
@@ -160,20 +169,19 @@
     </div>
 
     <div class="camera-tools">
-      <button id="view" type="button" title="Switch camera (V)">First person · V</button>
+      <button id="shift-lock" aria-pressed="false">Shift lock off</button>
       <a class="credits-link" href="./credits.html">AI-assisted · Credits</a>
     </div>
 
     <div class="expedition-tools">
-      <button type="button" id="m3-restart">Restart Mission 3</button>
-      <button type="button" id="toggle-pad" aria-pressed="false">Movement pad</button>
+      <button type="button" id="m3-restart">Start again</button>
+      <button type="button" id="m3-hint">Help, Pip!</button><button type="button" id="return-pip">Back to Pip</button>
     </div>
 
+    <span id="mouse-status" class="sr-only" role="status"></span>
+    <button id="jump" type="button" aria-label="Jump in low lunar gravity">Jump ↑</button>
     <div id="reticle" aria-hidden="true"></div>
-    <p id="help">
-      <span class="desktop">WASD move · Drag or arrows to look · E scan / interact · V camera</span>
-      <span class="mobile">Use arrows to walk · Drag to look · Tap button to scan</span>
-    </p>
+    <details id="help" class="control-guide"><summary>How to play</summary><p class="desktop">W forward · A left · S back · D right<br>Drag to look · E to use · Space to jump</p><p class="mobile">Use the arrows to move. Drag to look. Tap Jump or Explore.</p><p class="desktop">Shift locks the mouse. Q or Esc frees it. V changes your view.</p></details>
     <button id="use" type="button" hidden></button>
 
     <div id="pad" aria-label="Movement">
@@ -185,15 +193,21 @@
   </section>
 
   <dialog id="m3-modal" class="m3-dialog" aria-labelledby="m3-modal-title">
+    <span class="pip-avatar mini" aria-hidden="true"><i></i><i></i></span>
     <small id="m3-modal-eyebrow" class="eyebrow">MISSION 03 / SCANNER LOG</small>
     <h2 id="m3-modal-title"></h2>
     <p id="m3-modal-body"></p>
     <div id="m3-modal-reading" class="m3-reading" hidden></div>
+    <details id="m3-science" hidden><summary>Curious? Learn more</summary>
     <p id="m3-modal-fact" class="m3-fact" hidden></p>
     <a id="m3-modal-source" class="m3-source" target="_blank" rel="noopener noreferrer" hidden></a>
+    </details>
+    <details id="m3-extra" hidden><summary>Battery and air details</summary><p id="m3-extra-text"></p></details>
+    <progress id="m3-progress" max="1" value="0" aria-label="Scan progress" hidden></progress>
     <div class="m3-dialog-actions">
+      <button id="m3-modal-confirm" class="primary" hidden>Confirm</button>
       <button type="button" id="m3-modal-restart" hidden>Play again</button>
-      <button type="button" id="m3-modal-close" class="primary">Continue</button>
+      <button type="button" id="m3-modal-close">Continue</button>
     </div>
   </dialog>
 </body>

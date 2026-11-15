@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="shared/expedition.css">
   <script src="shared/mission1.js" defer></script>
   <script src="shared/mission2.js" defer></script>
+  <script src="shared/mission3.js" defer></script>
   <script src="shared/surface-run.js" defer></script>
   <script src="shared/expedition-ui.js" defer></script>
   <script src="launch/menu.js" defer></script>
@@ -56,7 +57,7 @@
           <div class="mission-content">
             <p class="mission-number">Mission 01 · Tutorial</p>
             <h2 id="mission-one-title">Lunar outpost</h2>
-            <p>A clue in the cold. Explore two lunar sites with Pip, investigate possible water ice, and send your finding home.</p>
+            <p>Is there ice in the shadows? Place your scanners and find two clues.</p>
             <div class="mission-meta"><span>Safe expedition</span><span>2 observations</span><span>1 discovery</span></div>
             <div class="mission-actions"><a class="button primary" id="play-3d" href="./3d-test.html?new=1"><span id="play-3d-label">Start mission in 3D</span><span aria-hidden="true">↗</span></a><a class="button" id="play-2d" href="./dashboard.html"><span id="play-2d-label">Open 2D dashboard</span><span aria-hidden="true">↗</span></a></div>
           </div>
@@ -71,14 +72,15 @@
             <div class="mission-actions"><a class="button primary" id="play-3d-2" href="./3d-mission2.html?new=1"><span id="play-3d-2-label">Start mission in 3D</span><span aria-hidden="true">↗</span></a><a class="button" id="play-2d-2" href="./dashboard-mission2.html"><span id="play-2d-2-label">Open 2D dashboard</span><span aria-hidden="true">↗</span></a></div>
           </div>
         </article>
-        <article class="mission-card locked" aria-labelledby="mission-three-title">
-          <div class="mission-visual"><img src="launch/assets/mission-orbiter.jpg" alt="Artist's rendering of NASA's Lunar Reconnaissance Orbiter above the Moon" loading="lazy" width="1240" height="510"><span class="tag">Coming soon</span><span class="visual-number" aria-hidden="true">03</span><a class="image-credit" href="https://astrobiology.nasa.gov/missions/lro/" target="_blank" rel="noopener noreferrer">NASA / GSFC · LRO illustration ↗</a></div>
-          <div class="mission-content"><p class="mission-number">Mission 03</p><h2 id="mission-three-title">The next frontier</h2><p>New challenges. New discoveries. Stand by for your next transmission.</p><div class="mission-meta"><span>Awaiting briefing</span></div><button class="button" type="button" disabled>Coming soon</button></div>
+        <article class="mission-card available" aria-labelledby="mission-three-title">
+          <div class="mission-visual"><img src="launch/assets/mission-orbiter.jpg" alt="Artist's rendering of NASA's Lunar Reconnaissance Orbiter above the Moon" loading="lazy" width="1240" height="510"><span class="tag" id="mission-three-status">Ready to explore</span><span class="visual-number" aria-hidden="true">03</span><a class="image-credit" href="https://astrobiology.nasa.gov/missions/lro/" target="_blank" rel="noopener noreferrer">NASA / GSFC · LRO illustration ↗</a></div>
+          <div class="mission-content"><p class="mission-number">Mission 03 · Cave expedition</p><h2 id="mission-three-title">Into the lava tube</h2><p>Explore a Moon cave with Pip. Find three clues and send them home.</p><div class="mission-meta"><span>Explore a cave</span><span>3 clues</span><span>Send a message</span></div><div class="mission-actions"><a class="button primary" id="play-3d-3" href="./mission3-3d.html?new=1"><span id="play-3d-3-label">Start mission in 3D</span><span aria-hidden="true">↗</span></a></div></div>
         </article>
       </div>
       <details id="saved-journal" class="saved-journal" hidden><summary>Your discovery journal <span>Read your first lunar finding ↗</span></summary><div id="journal-content"></div><p id="journal-save-note" class="training-note"></p></details>
       <details id="saved-debrief" class="saved-journal" hidden><summary>Your Mission 2 debrief <span>See how your last plan worked ↗</span></summary><div id="debrief-content"></div></details>
-      <div class="selection-note"><span>Missions 1 and 2 are available. Mission 3 is coming soon.</span><a class="text-link" href="./index.html">↶ Replay intro</a></div>
+      <details id="saved-cave" class="saved-journal" hidden><summary>Your cave expedition <span>Read the last field report ↗</span></summary><p id="cave-result-message"></p></details>
+      <div class="selection-note"><span>Three missions to explore. Missions 1 and 2 also have 2D dashboards.</span><a class="text-link" href="./index.html">↶ Replay intro</a></div>
       <p class="selection-note" id="restart-options" hidden><span>Want a fresh start?</span><a class="text-link" href="./3d-test.html?new=1">Restart in 3D</a><a class="text-link" href="./dashboard.html?new=1">Restart in 2D</a></p>
       <p class="selection-note" id="restart-two-options" hidden><span>Start Mission 2 over?</span><a class="text-link" href="./3d-mission2.html?new=1">Restart in 3D</a><a class="text-link" href="./dashboard-mission2.html?new=1">Restart in 2D</a></p>
       <noscript><p>Enable JavaScript to play a mission.</p></noscript>

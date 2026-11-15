@@ -77,9 +77,8 @@ const Mission2 = (() => {
   const copy = {
     steps: ["Shift 1 · Sun", "Shift 2 · Shadow", "Shift 3 · Shadow"],
     welcome: [
-      ["Three shifts to go", "Hi again! The sun is up for shift 1, then the outpost slides into two shadow shifts with no solar power at all.", "What do we need to do?"],
-      ["Power through the shadows", "Keep the battery and oxygen safety above zero for all three shifts, and send one science report to Earth.", "Where do I choose?"],
-      ["Your command stations", "The Habitat runs Hold steady or Save power. Communications sends the report. Walking, looking and previewing are free. Nothing changes until you confirm.", "Let's plan"]
+      ["Help our Moon base!", "The sun is going away. Keep the battery and air above zero, and send one report home.", "How do I help?"],
+      ["You're in charge", "Choose at the habitat or the radio. You can see what a choice does before you confirm it.", "Let's try!"]
     ],
     stationTitle: { habitat: "Habitat command", communications: "Communications" },
     station: (state, id) => id === "communications" && state.reported ? "Our report already reached Earth. Use the Habitat to command the remaining shifts." :

@@ -13,9 +13,10 @@
       "Pip dialogue, mission briefings, and educational text",
       "Fictional training scanner readings and report wording",
       "Documentation and automated test development",
+      "Mission 3 integration: shared outpost models, movement, cave camera collision, scan confirmation, save recovery, menu wiring, and regression checks",
       "Mission 2 (Power Through the Shadows): shared shift-rule extraction, station command panels, dialogue and debriefs, 2D and 3D pages, menu wiring, tests, and documentation, written with Claude Code (Anthropic)"
     ],
-    "code_and_content_paths": ["index.html", "dashboard.html", "3d-test.html", "dashboard-mission2.html", "3d-mission2.html", "classic-mission.html", "launch/", "surface/", "shared/", "tests/", "docs/", "README.md", "credits.html"],
+    "code_and_content_paths": ["index.html", "dashboard.html", "3d-test.html", "dashboard-mission2.html", "3d-mission2.html", "mission3-3d.html", "classic-mission.html", "launch/", "surface/", "shared/", "tests/", "docs/", "README.md", "credits.html"],
     "human_direction": "The team supplied the goal of inspiring children through space exploration and selected the audience, safe expedition, robot companion, and journal reward. The team specified Mission 2's rules, costs, worked runs and release requirements in its release guide.",
     "review_status": "Development included source checks, automated checks, and browser checks. This record does not assert independent human scientific review or organizer approval.",
     "runtime": "Pip is scripted; the game does not call a live AI model.",
@@ -23,7 +24,7 @@
     "audio": "No audio assets or generated speech are currently included."
   },
   "simulated_data": {
-    "paths": ["shared/mission1.js", "shared/mission2.js", "shared/game.js"],
+    "paths": ["shared/mission1.js", "shared/mission2.js", "shared/mission3.js", "shared/game.js"],
     "provenance": "AI-assisted authored training values and simplified game rules, not live NASA measurements.",
     "readings": ["Ice-like light pattern detected", "Rock-like light pattern detected"],
     "geography": "Authored fictional outpost, not a surveyed NASA landing site.",
@@ -38,8 +39,8 @@
     {"path":"launch/assets/mission-orbiter.jpg","origin":"Published NASA spacecraft illustration","credit":"NASA/GSFC","source_page":"https://astrobiology.nasa.gov/missions/lro/","source_file":"https://astrobiology.nasa.gov/uploads/filer_public_thumbnails/filer_public/38/50/38502496-e6f7-41f0-8698-e7c7745f582a/pia18163_hires_hero.jpg__1240x510_q85_crop_subject_location-620%2C289_subsampling-2.jpg","modifications":["Publisher-provided web thumbnail","Cropped by CSS for the mission card"],"ai_image_generation_in_this_work":false},
     {"path":"favicon.ico","origin":"Pre-existing repository asset","credit":"Creator not established in the current record","generation_history":"Unverified; team confirmation pending"}
   ],
-  "science_sources": ["https://science.nasa.gov/moon/moon-water-and-ices/", "https://www.jpl.nasa.gov/news/ice-confirmed-at-the-moons-poles/"],
-  "third_party_software": [{"name":"Three.js","version":"0.187.0","credit":"Copyright 2010-2026 three.js authors","license":"MIT","license_url":"https://github.com/mrdoob/three.js/blob/r187/LICENSE","delivery":"Loaded from jsDelivr CDN"}],
+  "science_sources": ["https://science.nasa.gov/moon/moon-water-and-ices/", "https://www.jpl.nasa.gov/news/ice-confirmed-at-the-moons-poles/", "https://science.nasa.gov/blogs/science-news/2025/09/26/hammering-out-shelter-on-moon-and-mars/", "https://science.nasa.gov/moon/lunar-volcanism/", "https://www.nasa.gov/solar-system/nasas-lro-finds-lunar-pits-harbor-comfortable-temperatures/", "https://science.nasa.gov/solar-system/moon/new-evidence-adds-to-findings-hinting-at-network-of-caves-on-moon/"],
+  "third_party_software": [{"name":"Three.js","version":"0.187.0","credit":"Copyright 2010-2026 three.js authors","license":"MIT","license_url":"https://github.com/mrdoob/three.js/blob/r187/LICENSE","delivery":"Bundled locally in vendor/three from the pinned jsDelivr package"}],
   "future_generated_media": "Record tool and generation method; add a visible AI/SI-generation watermark for generated images and videos and descriptive text/metadata for generated audio. Keep NASA branding out of generated artwork. Clarify organizer treatment of code-rendered captures before submission.",
   "submission_review": "Actual AI use includes mission brainstorming. Confirm interpretation of the idea-origin clause with organizers; this provenance record is not a compliance certification.",
   "media_usage_guidance": "https://www.nasa.gov/nasa-brand-center/images-and-media/",

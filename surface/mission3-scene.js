@@ -1,14 +1,19 @@
 import * as THREE from "three";
+import { createHabitat, createSolarPanel, createPip, createGroundScanner, createFieldDisplay } from "./models.js";
+import { runTutorial } from "./tutorial.js";
+import { createMission3Controller } from "./mission3-ui.js";
+import { createOutpostFlag } from "./flag.js";
 
 if (typeof Mission3 === "undefined") {
   const loading = document.getElementById("loading");
-  if (loading) loading.textContent = "Missing shared/mission3.js. Create it first, then reload.";
+  if (loading) loading.textContent = "The cave briefing could not load. Reload or return to mission selection.";
   throw new Error("Mission3 module is not loaded.");
 }
 
 const $ = id => document.getElementById(id);
 const clamp = THREE.MathUtils.clamp;
 const mount = $("scene");
+const controller = createMission3Controller();
 
 // --- Scene, Camera, Renderer ---
 const scene = new THREE.Scene();
@@ -122,40 +127,17 @@ new THREE.TextureLoader().load("./launch/assets/earth-blue-marble.jpg", tex => {
   earth.visible = true;
 }, undefined, () => {});
 
-// --- Outpost Structures ---
-const habitatMat = new THREE.MeshStandardMaterial({ color: 0xc6c9c9, roughness: 0.58, metalness: 0.12 });
-const metalMat = new THREE.MeshStandardMaterial({ color: 0x747f89, roughness: 0.42, metalness: 0.68 });
-const panelMat = new THREE.MeshStandardMaterial({ color: 0x173957, roughness: 0.32, metalness: 0.48 });
-const trimMat = new THREE.MeshStandardMaterial({ color: 0x263946, roughness: 0.7 });
-
+// The refined habitat and panels are the same models used by Missions 1 and 2.
 const solids = [];
-
-const habitat = new THREE.Group();
-const hBase = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.4, 0.35, 28), metalMat);
-hBase.position.y = 0.175;
-const hDome = new THREE.Mesh(new THREE.SphereGeometry(1.22, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), habitatMat);
-hDome.position.y = 0.35;
-habitat.add(hBase, hDome);
-habitat.scale.setScalar(1.65);
+const habitat = createHabitat();
 habitat.position.set(-5.5, groundHeight(-5.5, -1), -1);
-scene.add(habitat);
-solids.push(new THREE.Box3().setFromObject(habitat));
-
-function addPanel(x, z) {
-  const g = new THREE.Group();
-  const deck = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.1, 1.8), panelMat);
-  deck.position.y = 1.1;
-  deck.castShadow = true;
-  const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.1, 8), metalMat);
-  leg.position.y = 0.55;
-  g.add(deck, leg);
-  g.position.set(x, groundHeight(x, z), z);
-  scene.add(g);
-  solids.push(new THREE.Box3().setFromObject(g));
+scene.add(habitat); solids.push(new THREE.Box3().setFromObject(habitat));
+for (const x of [-3.5, 3.5]) {
+  const panel = createSolarPanel();
+  panel.position.set(x, groundHeight(x, -7), -7);
+  panel.rotation.z = x < 0 ? -0.12 : 0.12;
+  scene.add(panel); solids.push(new THREE.Box3().setFromObject(panel));
 }
-addPanel(-3.5, -7);
-addPanel(3.5, -7);
-
 // --- True Underground Lava Tube (clean upper basalt arch + solid surface roof crust) ---
 const basaltMat = new THREE.MeshStandardMaterial({
   color: 0x333840,
@@ -247,11 +229,12 @@ function addLabel(text, x, y, z, color) {
   scene.add(sprite);
 }
 
+const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x747f89, roughness: 0.42, metalness: 0.68 });
 // --- Stations: Communications + Pit Skylight + 3 Cave Chambers ---
 const stations = [];
 
 const comms = new THREE.Group();
-const cBox = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.05, 0.55), metalMat);
+const cBox = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.05, 0.55), metalMaterial);
 cBox.position.y = 0.525;
 const cScreen = new THREE.Mesh(
   new THREE.BoxGeometry(0.7, 0.38, 0.05),
@@ -267,7 +250,7 @@ stations.push({ id: "communications", name: "Surface communications", x: 0, z: -
 
 const dishMast = new THREE.Group();
 dishMast.position.set(1.2, groundHeight(1.2, -4.3), -4.3);
-const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 1.7, 10), metalMat);
+const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 1.7, 10), metalMaterial);
 pole.position.y = 0.85;
 const bowl = new THREE.Mesh(
   new THREE.SphereGeometry(0.65, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2),
@@ -282,417 +265,112 @@ solids.push(new THREE.Box3().setFromObject(dishMast));
 
 const stationMeshes = new Map();
 for (const site of Object.values(Mission3.sites)) {
-  const isEntrance = site.id === "entrance";
-  const color = isEntrance ? 0xffc267 : 0x7de8f4;
-  const g = new THREE.Group();
-  const y = groundHeight(site.x, site.z);
-  g.position.set(site.x, y, site.z);
-
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(0.45, 0.035, 8, 32),
-    new THREE.MeshBasicMaterial({ color })
-  );
-  ring.rotation.x = Math.PI / 2;
-  ring.position.y = 0.06;
-
-  const core = new THREE.Mesh(
-    isEntrance ? new THREE.ConeGeometry(0.24, 0.65, 6) : new THREE.CylinderGeometry(0.18, 0.24, 0.72, 10),
-    new THREE.MeshStandardMaterial({ color: 0x263946, emissive: color, emissiveIntensity: 0.45 })
-  );
-  core.position.y = 0.42;
-
-  const light = new THREE.PointLight(color, isEntrance ? 2.0 : 3.5, 7);
-  light.position.y = 1.1;
-
-  g.add(ring, core, light);
-  scene.add(g);
-  stationMeshes.set(site.id, { ring, core, light });
-  addLabel(site.name, site.x, y + 1.55, site.z, isEntrance ? "#ffc267" : "#8ae5f1");
-  stations.push({ id: site.id, name: site.name, x: site.x, z: site.z });
+  const equipment = createGroundScanner(site.id === "entrance" ? "sunlit" : "shadow");
+  equipment.scanner.position.set(site.x, groundHeight(site.x, site.z), site.z);
+  for (const leg of equipment.legs) leg.mesh.rotation.x = leg.x;
+  scene.add(equipment.scanner);
+  solids.push(new THREE.Box3().setFromObject(equipment.scanner));
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.025, 8, 40),
+    new THREE.MeshBasicMaterial({ color: site.id === "entrance" ? 0xffc267 : 0x8ae5f1 }));
+  ring.rotation.x = Math.PI / 2; ring.position.set(site.x, groundHeight(site.x, site.z) + 0.06, site.z);
+  scene.add(ring);
+  const light = new THREE.PointLight(0xa9dfeb, 2.8, 6);
+  light.position.set(site.x, groundHeight(site.x, site.z) + 1.3, site.z + 0.4); scene.add(light);
+  stationMeshes.set(site.id, { ...equipment, ring, light });
+  stations.push(site);
+  addLabel(site.name, site.x, groundHeight(site.x, site.z) + 1.55, site.z, "#8ae5f1");
 }
+// Simple guide lights make the descent and return route readable in the shadows.
+for (const z of [3.5, 5.5, 7.3, 10.2, 13.3, 15.4]) {
+  for (const x of [6.05, 9.95]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.35, 8),
+      new THREE.MeshBasicMaterial({ color: z < 7 ? 0xffc267 : 0x7de8f4 }));
+    post.position.set(x, groundHeight(x, z) + 0.18, z); scene.add(post);
+  }
+}
+const { pip, pipHead, pipEyes } = createPip();
+pip.position.set(1.6, groundHeight(1.6, 6), 6);
+scene.add(pip); solids.push(new THREE.Box3().setFromObject(pip));
+stations.push({ id: "pip", name: "Pip", x: 1.6, z: 6 });
+addLabel("Pip / cave guide", 1.6, pip.position.y + 1.6, 6, "#ffc267");
+const display = createFieldDisplay();
+display.hardware.position.set(2.5, groundHeight(2.5, -4), -4); display.hinge.rotation.x = -0.5;
+scene.add(display.hardware); solids.push(new THREE.Box3().setFromObject(display.hardware));
+stations.push({ id: "field-screen", name: "Cave field screen", x: 2.5, z: -4 });
+addLabel("Cave field readings", 2.5, groundHeight(2.5, -4) + 1.6, -4, "#8ae5f1");
+const flag = createOutpostFlag(scene, groundHeight, renderer, controller.flagPlanted);
+stations.push(flag.station); solids.push(flag.collider);
 
-// Waypoint Beacon
 const marker = new THREE.Group();
-const beam = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.025, 0.025, 2.2, 8),
-  new THREE.MeshBasicMaterial({ color: 0xffc267, transparent: true, opacity: 0.65, depthWrite: false })
-);
-beam.position.y = 1.1;
-const diamond = new THREE.Mesh(
-  new THREE.OctahedronGeometry(0.16),
-  new THREE.MeshBasicMaterial({ color: 0xffc267 })
-);
-diamond.position.y = 2.3;
-marker.add(beam, diamond);
-scene.add(marker);
+const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.7, 8),
+  new THREE.MeshBasicMaterial({ color: 0xffc267, transparent: true, opacity: 0.45, depthWrite: false }));
+beacon.position.set(-0.85, 0.85, 0);
+const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.12), new THREE.MeshBasicMaterial({ color: 0xffc267 }));
+diamond.position.set(-0.85, 1.85, 0); marker.add(beacon, diamond); scene.add(marker);
 
-// --- Astronaut Suit ---
-const suit = new THREE.Group();
-const whiteMat = new THREE.MeshStandardMaterial({ color: 0xe3dfd3 });
-const goldMat = new THREE.MeshStandardMaterial({ color: 0xd59842, metalness: 0.52, roughness: 0.28 });
-function suitPart(geo, mat, x, y, z) {
-  const m = new THREE.Mesh(geo, mat);
-  m.position.set(x, y, z);
-  m.castShadow = true;
-  suit.add(m);
-  return m;
-}
-suitPart(new THREE.CapsuleGeometry(0.23, 0.27), whiteMat, 0, 0.83, 0);
-suitPart(new THREE.BoxGeometry(0.38, 0.45, 0.19), trimMat, 0, 0.84, 0.22);
-suitPart(new THREE.SphereGeometry(0.24), whiteMat, 0, 1.32, 0);
-suitPart(new THREE.SphereGeometry(0.22), goldMat, 0, 1.32, -0.06).scale.set(0.96, 0.78, 1);
-
-const startPos = new THREE.Vector3(0, groundHeight(0, 2.5), 2.5);
-suit.position.copy(startPos);
-suit.visible = false;
-scene.add(suit);
-
-// --- Game State & Safe UI Rendering ---
-let state = Mission3.create();
-let phase = "briefing";
-let third = false;
-let yaw = 0;
-let pitch = -0.08;
-let nearby = null;
-const keys = new Set();
-let pointer = null;
-let lastX = 0;
-let lastY = 0;
-
-const modal = $("m3-modal");
-
-function showModal({ eyebrow, title, body, reading = "", fact = "", sourceTitle = "", source = "", finished = false }) {
-  $("m3-modal-eyebrow").textContent = eyebrow;
-  $("m3-modal-title").textContent = title;
-  $("m3-modal-body").textContent = body;
-
-  $("m3-modal-reading").hidden = !reading;
-  if (reading) $("m3-modal-reading").textContent = `SIMULATED SCAN · ${reading}`;
-
-  $("m3-modal-fact").hidden = !fact;
-  if (fact) $("m3-modal-fact").textContent = fact;
-
-  const sourceEl = $("m3-modal-source");
-  sourceEl.hidden = !source;
-  if (source) {
-    sourceEl.href = source;
-    sourceEl.textContent = `${sourceTitle || "Explore the real science at NASA"} ↗`;
-  }
-
-  $("m3-modal-restart").hidden = !finished;
-  $("m3-modal-close").textContent = finished ? "Close" : "Continue exploring";
-
-  keys.clear();
-  pointer = null;
-  if (document.pointerLockElement === renderer.domElement) document.exitPointerLock();
-  if (!modal.open) modal.showModal();
-}
-
-function updateHUD() {
-  $("scan-count").textContent = `${state.scans.length} / 3 cave scans`;
-  const shiftIdx = Math.min(state.shift, Mission3.SHIFTS.length - 1);
-  const shiftType = Mission3.SHIFTS[shiftIdx];
-  $("shift-badge").textContent = Mission3.isFinished(state)
-    ? `MISSION ENDED · SHIFT ${state.shift} / ${Mission3.SHIFTS.length}`
-    : `SHIFT ${state.shift + 1} / ${Mission3.SHIFTS.length} · ${shiftType === "sunlight" ? "SUNLIGHT (+4 ENERGY)" : "SHADOW (+0 ENERGY)"}`;
-
-  $("m3-energy-text").textContent = `${state.energy} / ${Mission3.MAX_ENERGY}`;
-  $("m3-energy-bar").style.width = `${(100 * state.energy) / Mission3.MAX_ENERGY}%`;
-
-  $("m3-oxygen-text").textContent = `${state.oxygen} / ${Mission3.MAX_OXYGEN}`;
-  $("m3-oxygen-bar").style.width = `${(100 * state.oxygen) / Mission3.MAX_OXYGEN}%`;
-
-  $("objective").textContent = Mission3.objective(state);
-
-  for (const [id, mesh] of stationMeshes) {
+function updateVisuals() {
+  const state = controller.state;
+  for (const [id, equipment] of stationMeshes) {
     const done = id === "entrance" ? state.caveLocated : state.scans.includes(id);
-    mesh.ring.material.color.setHex(done ? 0x7be3b5 : id === "entrance" ? 0xffc267 : 0x7de8f4);
-    mesh.light.intensity = done ? 1.0 : 3.2;
+    equipment.ring.material.color.setHex(done ? 0x8ce3ac : 0x8ae5f1);
+    const context = equipment.statusCanvas.getContext("2d");
+    context.fillStyle = "#0a202b"; context.fillRect(0, 0, 256, 112);
+    context.fillStyle = "#a7e8ee"; context.font = "bold 22px monospace";
+    context.fillText(id === "entrance" ? "SEISMIC" : id === "chamber2" ? "THERMAL" : "STRUCTURAL", 10, 35);
+    context.fillStyle = "#d6e5e7"; context.fillText(done ? "READING SAVED" : "READY", 10, 78);
+    equipment.statusTexture.needsUpdate = true;
   }
-
-  updateNavigation();
-  checkStation();
-}
-
-function updateNavigation() {
-  const next = Mission3.next(state);
-  marker.visible = !Mission3.isFinished(state);
-  marker.position.set(next.x, groundHeight(next.x, next.z), next.z);
-  const dx = next.x - suit.position.x;
-  const dz = next.z - suit.position.z;
-  $("waypoint-name").textContent = `${next.name} · ${Math.round(Math.hypot(dx, dz))} m`;
-  $("waypoint-arrow").style.transform = `rotate(${Math.atan2(dx, -dz) + yaw}rad)`;
-}
-
-function checkStation() {
-  nearby = stations
-    .filter(st => Math.hypot(st.x - suit.position.x, st.z - suit.position.z) <= 2.1)
-    .sort((a, b) => Math.hypot(a.x - suit.position.x, a.z - suit.position.z) - Math.hypot(b.x - suit.position.x, b.z - suit.position.z))[0] || null;
-
-  $("use").hidden = !nearby || phase !== "walk";
-  if (!nearby) return;
-
-  if (nearby.id === "entrance") {
-    $("use").textContent = state.caveLocated ? "Pit skylight scanned · E" : "Run seismic cave test (-1 energy) · E";
-  } else if (nearby.id === "communications") {
-    $("use").textContent = state.reported
-      ? "Report already sent · E"
-      : state.scans.length === 3
-        ? "Send report to Earth (-1 energy) · E"
-        : "Surface Comms (need 3 scans) · E";
-  } else {
-    const scanned = state.scans.includes(nearby.id);
-    $("use").textContent = scanned
-      ? `View ${nearby.name} log · E`
-      : `Structural scan (-2 energy) · E`;
-  }
-}
-
-function interact() {
-  if (!nearby || phase !== "walk" || modal.open) return;
-
-  if (Mission3.isFinished(state)) {
-    showModal({
-      eyebrow: state.reported ? "MISSION 03 / SUCCESS" : "MISSION 03 / FAILED",
-      title: state.reported ? "Report transmitted!" : "Expedition ended",
-      body: Mission3.objective(state),
-      finished: true
-    });
-    return;
-  }
-
-  if (nearby.id === "entrance") {
-    const site = Mission3.sites.entrance;
-    if (!state.caveLocated) {
-      state = Mission3.locateCave(state);
-      updateHUD();
-    }
-    showModal({
-      eyebrow: "MISSION 03 / SEISMIC RECON",
-      title: site.name,
-      body: site.response,
-      reading: site.reading,
-      fact: site.fact,
-      sourceTitle: site.sourceTitle,
-      source: site.source,
-      finished: Mission3.isFinished(state)
-    });
-    return;
-  }
-
-  if (nearby.id === "communications") {
-    if (!state.caveLocated || state.scans.length < 3) {
-      showModal({
-        eyebrow: "MISSION 03 / SURFACE COMMS",
-        title: "Not ready to transmit",
-        body: "Radio signals can't escape from inside the deep lava tube, and Mission Control needs all 3 structural scans first."
-      });
-      return;
-    }
-    state = Mission3.submit(state);
-    updateHUD();
-    showModal({
-      eyebrow: state.reported ? "MISSION 03 / COMPLETE" : "MISSION 03 / FAILED",
-      title: state.reported ? "Report received on Earth!" : "Transmission failed",
-      body: state.reported ? Mission3.report : state.failReason,
-      reading: state.reported ? `Final Energy: ${state.energy}/9 · Final Oxygen: ${state.oxygen}/3` : "",
-      finished: true
-    });
-    return;
-  }
-
-  const site = Mission3.sites[nearby.id];
-  if (!site) return;
-
-  if (!state.caveLocated) {
-    showModal({
-      eyebrow: "MISSION 03 / SAFETY CHECK",
-      title: "Locate the cave entrance first",
-      body: "Follow the amber beacon to the pit skylight on the surface before collecting deep cave scans."
-    });
-    return;
-  }
-
-  if (!state.scans.includes(site.id)) {
-    state = Mission3.scan(state, site.id);
-    updateHUD();
-  }
-
-  showModal({
-    eyebrow: Mission3.isFinished(state) ? "MISSION 03 / FAILED" : `MISSION 03 / SCAN ${state.scans.length} OF 3`,
-    title: site.name,
-    body: state.failed ? state.failReason : site.response,
-    reading: site.reading,
-    fact: site.fact,
-    sourceTitle: site.sourceTitle,
-    source: site.source,
-    finished: Mission3.isFinished(state)
+  const context = display.canvas.getContext("2d");
+  context.fillStyle = "#071822"; context.fillRect(0, 0, 1024, 640);
+  context.fillStyle = "#a0eee3"; context.font = "bold 38px sans-serif"; context.fillText("CAVE FIELD READINGS", 42, 65);
+  context.fillStyle = "#b5d8dc"; context.font = "27px sans-serif";
+  context.fillText(`${state.scans.length} / 3 structural scans received`, 42, 118);
+  Mission3.CAVE_SITES.forEach((id, index) => {
+    const y = 160 + index * 100;
+    context.fillStyle = "#153846"; context.fillRect(32, y, 960, 85);
+    context.fillStyle = state.scans.includes(id) ? "#b0eac6" : "#9ab6c0";
+    context.font = "bold 27px sans-serif"; context.fillText(Mission3.sites[id].name, 52, y + 34);
+    context.font = "24px sans-serif"; context.fillText(state.scans.includes(id) ? Mission3.sites[id].reading : "Awaiting scanner", 52, y + 65);
   });
+  context.font = "26px sans-serif"; context.fillStyle = "#e4f4ed";
+  context.fillText(`Energy ${state.energy} / 9     Oxygen ${state.oxygen} / 3`, 42, 532);
+  context.font = "21px sans-serif"; context.fillStyle = "#8eaeb7";
+  context.fillText("SIMULATED TRAINING READINGS / FICTIONAL CAVE", 42, 593);
+  display.texture.needsUpdate = true;
+  sunlight.intensity = state.shift ? 0.9 : 3;
+  renderer.shadowMap.needsUpdate = true;
 }
-
-function restartMission() {
-  state = Mission3.create();
-  suit.position.copy(startPos);
-  yaw = 0;
-  pitch = -0.08;
-  if (modal.open) modal.close();
-  aimCamera();
-  updateHUD();
-}
-
-// --- Movement, Camera & Headlamp ---
-const eye = new THREE.Vector3();
-const dir = new THREE.Vector3();
-const lookTarget = new THREE.Vector3();
-
-function aimCamera() {
-  dir.set(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
-  eye.copy(suit.position);
-  eye.y += 1.32;
-  suit.visible = third;
-
-  headlamp.position.copy(eye);
-  headlamp.target.position.copy(eye).addScaledVector(dir, 6);
-
-  if (third) {
-    camera.position.copy(eye).addScaledVector(dir, -2.2);
-    camera.position.y = Math.max(camera.position.y + 0.45, groundHeight(camera.position.x, camera.position.z) + 0.35);
-    // Keep third-person camera safely below the cave ceiling when inside the lava tube
-    if (camera.position.z >= CAVE_MOUTH_Z - 0.3 && Math.abs(camera.position.x - PIT_X) < 3.4) {
-      camera.position.y = Math.min(camera.position.y, -0.7);
-    }
-    camera.lookAt(lookTarget.copy(eye).addScaledVector(dir, 2.2));
-  } else {
-    camera.position.copy(eye);
-    camera.lookAt(lookTarget.copy(eye).add(dir));
-  }
-}
-
-function canStand(x, z) {
-  if (x < -14 || x > 14 || z < -12 || z > 15.6) return false;
-
-  // Keep player inside the pit ramp & lava-tube walls once past z = 2.6 near x = 8
-  const inPitCorridor = z >= 2.6 && Math.abs(x - PIT_X) < 4.5;
-  if (inPitCorridor && Math.abs(x - PIT_X) > 2.25) return false;
-
-  // Block walking onto the crust roof over the underground cave from outside
-  if (z >= CAVE_MOUTH_Z && Math.abs(x - PIT_X) >= 2.25 && Math.abs(x - PIT_X) <= 4.6) return false;
-
-  return !solids.some(box =>
-    x > box.min.x - 0.28 && x < box.max.x + 0.28 && z > box.min.z - 0.28 && z < box.max.z + 0.28
-  );
-}
-
-function walk(dt) {
-  const forward = Number(keys.has("KeyW")) - Number(keys.has("KeyS"));
-  const side = Number(keys.has("KeyD")) - Number(keys.has("KeyA"));
-  if (!forward && !side) return;
-
-  const step = (3.4 * dt) / (Math.hypot(forward, side) || 1);
-  const dx = (side * Math.cos(yaw) - forward * Math.sin(yaw)) * step;
-  const dz = (-forward * Math.cos(yaw) - side * Math.sin(yaw)) * step;
-
-  const p = suit.position;
-  const oldX = p.x, oldZ = p.z;
-  if (canStand(p.x + dx, p.z)) p.x += dx;
-  if (canStand(p.x, p.z + dz)) p.z += dz;
-  p.y = groundHeight(p.x, p.z);
-  if (p.x !== oldX || p.z !== oldZ) suit.rotation.y = Math.atan2(oldX - p.x, oldZ - p.z);
-
-  aimCamera();
-  updateNavigation();
-  checkStation();
-}
-
-// --- Events ---
-$("deploy").onclick = () => {
-  phase = document.body.dataset.phase = "walk";
-  $("briefing").hidden = true;
-  $("live").hidden = false;
-  aimCamera();
-  updateHUD();
-};
-
-$("use").onclick = interact;
-$("m3-restart").onclick = restartMission;
-$("m3-modal-restart").onclick = restartMission;
-$("m3-modal-close").onclick = () => modal.close();
-
-$("view").onclick = () => {
-  if (phase !== "walk") return;
-  third = !third;
-  $("view").textContent = `${third ? "Third" : "First"} person · V`;
-  aimCamera();
-};
-
-$("toggle-pad").onclick = () => {
-  const visible = document.body.classList.toggle("show-movement-pad");
-  $("toggle-pad").setAttribute("aria-pressed", String(visible));
-};
-
-addEventListener("keydown", e => {
-  if (phase !== "walk" || modal.open) return;
-  if (["KeyW", "KeyA", "KeyS", "KeyD"].includes(e.code)) keys.add(e.code);
-  if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.code)) {
-    e.preventDefault();
-    yaw -= (e.code === "ArrowRight" ? 35 : e.code === "ArrowLeft" ? -35 : 0) * 0.003;
-    pitch = clamp(pitch - (e.code === "ArrowDown" ? 25 : e.code === "ArrowUp" ? -25 : 0) * 0.003, -1.0, 0.9);
-    aimCamera();
-  }
-  if (!e.repeat && e.code === "KeyV") $("view").click();
-  if (!e.repeat && e.code === "KeyE") interact();
+let scanEffect = null;
+document.addEventListener("expeditionchange", updateVisuals);
+document.addEventListener("expeditionscan", ({ detail }) => {
+  scanEffect = detail.active ? detail : null;
+  for (const [id, equipment] of stationMeshes) equipment.beam.visible = equipment.sweep.visible = detail.active && detail.id === id;
 });
-addEventListener("keyup", e => keys.delete(e.code));
-addEventListener("blur", () => { keys.clear(); pointer = null; });
-
-const canvas = renderer.domElement;
-canvas.onpointerdown = e => {
-  if (phase !== "walk" || modal.open || e.button !== 0) return;
-  pointer = e.pointerId;
-  lastX = e.clientX;
-  lastY = e.clientY;
-  canvas.setPointerCapture(pointer);
-};
-canvas.onpointermove = e => {
-  if (phase !== "walk" || modal.open || pointer !== e.pointerId) return;
-  yaw -= (e.clientX - lastX) * 0.0035;
-  pitch = clamp(pitch - (e.clientY - lastY) * 0.0035, -1.0, 0.9);
-  lastX = e.clientX;
-  lastY = e.clientY;
-  aimCamera();
-};
-canvas.onlostpointercapture = () => { pointer = null; };
-
-for (const btn of $("pad").querySelectorAll("button")) {
-  btn.onpointerdown = e => {
-    if (phase !== "walk") return;
-    e.preventDefault();
-    btn.setPointerCapture(e.pointerId);
-    keys.add(btn.dataset.key);
-  };
-  btn.onlostpointercapture = () => keys.delete(btn.dataset.key);
+function animateEquipment(time, reduced) {
+  headlamp.position.copy(camera.position);
+  headlamp.target.position.copy(camera.position).addScaledVector(camera.getWorldDirection(new THREE.Vector3()), 6);
+  if (scanEffect) {
+    const equipment = stationMeshes.get(scanEffect.id);
+    equipment.sweep.position.y = reduced ? 0.2 : 0.15 + 0.5 * (1 - scanEffect.progress);
+  }
+  const flagMoving = flag.update(time, reduced);
+  pipHead.rotation.z = reduced ? 0 : Math.sin(time * 2) * 0.02;
+  for (const eye of pipEyes) eye.scale.y = !reduced && Math.sin(time * 1.6) > 0.98 ? 0.2 : 1;
+  return flagMoving;
 }
-
-function resize() {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+function canTraverse(x, z) {
+  if (x < -14 || x > 14 || z < -12 || z > 15.6) return false;
+  const distance = Math.abs(x - PIT_X);
+  if (z >= 2.6 && distance < 4.5 && distance > 2.25) return false;
+  if (z >= CAVE_MOUTH_Z && distance >= 2.25 && distance <= 4.6) return false;
+  return ceilingHeight(x, z) - groundHeight(x, z) >= 1.65;
 }
-addEventListener("resize", resize);
-
-// Initial briefing camera overlooking the outpost & pit entrance
-camera.position.set(1.5, 5.5, -5.5);
-camera.lookAt(7.5, -1.0, 6.5);
-$("loading").hidden = true;
-$("deploy").disabled = false;
-
-let prevTime = performance.now();
-function loop(now) {
-  const dt = Math.min(0.05, Math.max(0, (now - prevTime) / 1000));
-  prevTime = now;
-  if (phase === "walk" && !modal.open) walk(dt);
-  diamond.rotation.y = now * 0.002;
-  renderer.render(scene, camera);
-  requestAnimationFrame(loop);
+function ceilingHeight(x, z) {
+  if (z < CAVE_MOUTH_Z - 0.3 || Math.abs(x - PIT_X) > 2.4) return Infinity;
+  return CAVE_FLOOR_Y - 0.25 + Math.sqrt(Math.max(0, 2.85 ** 2 - (x - PIT_X) ** 2));
 }
-requestAnimationFrame(loop);
+updateVisuals();
+runTutorial({ THREE, scene, camera, renderer, groundHeight, stations, solids, marker, pipHead,
+  animateEquipment, controller, startPosition: { x: 0, z: 2.5 }, canTraverse, ceilingHeight,
+  cameraObstacles: solids.concat([crustCap, brow, backWall].map(mesh => new THREE.Box3().setFromObject(mesh))),
+  interactionRange: 2.1 });

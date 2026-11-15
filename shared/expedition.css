@@ -117,3 +117,6 @@ body[data-expedition="3d"] .pip-dialog.is-scanning #scan-preview { height:100px;
 .field-device-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:18px; }
 .field-device-actions button:disabled { opacity:.45; cursor:default; }
 @media(max-width:480px) { .sample-visual { height:80px; } .is-field-screen #evidence-review { gap:10px; } .pip-dialog.is-field-screen { padding:16px; } }
+
+.pip-dialog details { margin:16px 0; color:#b4d5d8; font-size:12px; }
+.pip-dialog summary { cursor:pointer; padding:5px 0; }

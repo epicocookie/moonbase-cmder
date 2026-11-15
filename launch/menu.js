@@ -55,6 +55,18 @@
       debriefPanel.open = completedMission === "2";
     }
 
+    const run3 = mission3Run.load();
+    const active3 = run3 && !Mission3.isFinished(run3.state);
+    const last3 = run3 && Mission3.isFinished(run3.state) ? run3.state : mission3Run.getJournal()?.state;
+    document.getElementById("mission-three-status").textContent = active3 ? `${run3.state.scans.length} / 3 SCANS IN PROGRESS` : last3 ? (last3.reported ? "CAVE EXPEDITION COMPLETE" : "TRY A NEW EXPEDITION") : "READY TO EXPLORE";
+    setLink("play-3d-3", active3 ? "./mission3-3d.html#resume" : "./mission3-3d.html?new=1", active3 ? "Continue in 3D" : last3 ? "Replay in 3D" : "Start mission in 3D");
+    const cavePanel = document.getElementById("saved-cave");
+    cavePanel.hidden = !last3;
+    if (last3) {
+      document.getElementById("cave-result-message").textContent = last3.reported ? `${Mission3.report} Final energy ${last3.energy}/9, oxygen ${last3.oxygen}/3.` : last3.failReason;
+      cavePanel.open = completedMission === "3";
+    }
+
     // The banner celebrates whichever mission just ended; otherwise Mission 1's keepsake.
     const showTwo = completedMission === "2" && result2;
     banner.hidden = !(showTwo || ended);
@@ -67,6 +79,13 @@
       document.getElementById("result-title").textContent = "Your first lunar discovery!";
       document.getElementById("result-message").textContent = "Pip: We gathered two readings and sent a promising finding home. I wonder what we'll discover next!";
       document.getElementById("review-journal").textContent = "Open your journal ↓";
+    }
+    if (completedMission === "3" && last3) {
+      banner.hidden = false;
+      banner.dataset.target = "saved-cave";
+      document.getElementById("result-title").textContent = last3.reported ? "Your cave findings reached Earth!" : "Cave expedition ended";
+      document.getElementById("result-message").textContent = last3.reported ? "Pip: Three readings collected, and a safe return to the surface. Let's study the evidence!" : last3.failReason;
+      document.getElementById("review-journal").textContent = "Open cave report ↓";
     }
     if (new URLSearchParams(location.search).has("completed")) {
       history.replaceState(null, "", location.pathname + "#missions");

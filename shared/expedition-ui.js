@@ -59,7 +59,7 @@ const ExpeditionUI = (() => {
       <p id="scan-instruction" role="status"></p><progress id="scan-progress" max="1" value="0" aria-label="Scan progress"></progress>
       <button type="button" id="scan-start">Start scan</button>
     </div>
-    <div id="evidence-review" hidden></div><div id="uplink" hidden><span aria-hidden="true">◉ · · · ◉</span><progress id="uplink-progress" max="1" value="0" aria-label="Transmission progress"></progress></div><div id="pip-reading" class="scanner-reading" hidden></div><p id="pip-fact" class="science-fact" hidden></p><a id="pip-source" target="_blank" rel="noopener noreferrer" hidden>Explore the real science at NASA ↗</a>
+    <div id="evidence-review" hidden></div><div id="uplink" hidden><span aria-hidden="true">◉ · · · ◉</span><progress id="uplink-progress" max="1" value="0" aria-label="Transmission progress"></progress></div><div id="pip-reading" class="scanner-reading" hidden></div><details id="pip-science" hidden><summary>Curious? Learn more</summary><p id="pip-fact" class="science-fact" hidden></p><a id="pip-source" target="_blank" rel="noopener noreferrer" hidden>See the NASA story ↗</a></details>
     <div id="pip-panel" hidden></div><div id="pip-journal" hidden></div><div class="pip-dialog-actions"><button type="button" id="pip-send" class="primary" hidden></button><button type="button" id="pip-continue">Keep exploring</button></div>`;
   document.body.append(radio);
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -124,10 +124,12 @@ const ExpeditionUI = (() => {
     continueAction = () => radio.close();
     signal("expeditionpip", { speaking: true });
     $("pip-reading").hidden = !site;
+    $("pip-science").hidden = !site;
+    $("pip-science").open = false;
     $("pip-fact").hidden = !site;
     $("pip-source").hidden = !site;
     if (site) {
-      $("pip-reading").textContent = "SIMULATED SCAN · " + site.reading;
+      $("pip-reading").textContent = "Scanner clue · " + site.reading;
       $("pip-fact").textContent = site.fact;
       $("pip-source").href = site.source;
     }
@@ -236,7 +238,7 @@ const ExpeditionUI = (() => {
   function showFinding(site) {
     const both = state.observations.length === Object.keys(Mission1.sites).length;
     showRadio("A new piece of the mystery", both ? copy.bothFound : site.found, { site });
-    $("pip-continue").textContent = both ? "Let's review our findings" : "Find the other sample";
+    $("pip-continue").textContent = both ? "Look at our screen" : "Find the next clue";
   }
   function startDeployment(id, done) {
     radio.classList.add("is-scanning");
@@ -255,14 +257,14 @@ const ExpeditionUI = (() => {
   }
   function beginScan(site) {
     const deployed = state.deployed.includes(site.id);
-    showRadio(deployed ? "Your scanner is waiting" : "Place your ground scanner", deployed ? "Your equipment is still here. Resume the scan to collect this sample's reading." : copy.scanIntro);
+    showRadio(deployed ? "Your scanner is ready" : "Place your ground scanner", deployed ? "Your equipment is still here. Resume the scan to collect this sample's reading." : copy.scanIntro);
     scanSite = site;
     $("scan-preview").dataset.site = site.id;
     $("scan-panel").hidden = false;
     $("scan-progress").value = 0;
     $("scan-start").disabled = false;
     $("scan-start").textContent = deployed ? "Resume scan" : "Place scanner";
-    $("scan-instruction").textContent = deployed ? "Scanner standing by." : "Marked sample ready. Set the scanner down here.";
+    $("scan-instruction").textContent = deployed ? "Scanner standing by." : "Put the scanner on this spot.";
     $("pip-continue").textContent = "Cancel placement";
     if (!deployed) signal("expeditiondeploy", { active: true, id: site.id, preview: true, progress: 0 });
     $("scan-start").focus();
@@ -273,7 +275,7 @@ const ExpeditionUI = (() => {
     $("scan-start").disabled = true;
     $("scan-start").textContent = "Scanner collecting…";
     $("pip-continue").textContent = "Cancel scan";
-    $("scan-instruction").textContent = "Equipment placed · collecting light pattern…";
+    $("scan-instruction").textContent = "Checking the sample…";
     radio.classList.add("is-scanning");
     signal("expeditionscan", { active: true, id: site.id, progress: 0 });
     animation = { elapsed: 0, duration: 4000,
@@ -288,7 +290,7 @@ const ExpeditionUI = (() => {
     if (!scanSite || scanning) return;
     const site = scanSite;
     if (state.deployed.includes(site.id)) { collect(site); return; }
-    setMessage("Setting the scanner down. Its legs are unfolding around the sample. Almost ready!");
+    setMessage("The legs are opening. Almost ready!");
     $("scan-instruction").textContent = "Unfolding legs · settling onto the ground…";
     radio.classList.add("is-scanning");
     startDeployment(site.id, () => {
@@ -298,33 +300,33 @@ const ExpeditionUI = (() => {
     });
   };
   function showFieldReadings() {
-    showRadio("Your portable field screen", copy.reviewReady, {
-      confirm: { label: state.reviewed ? "Return to the outpost" : "Evidence reviewed · prepare report", action: () => {
+    showRadio("Our two clues", copy.reviewReady, {
+      confirm: { label: state.reviewed ? "Back to exploring" : "Looks good · next", action: () => {
         update(Mission1.review(state));
         radio.close();
       } }
     });
     radio.classList.add("is-field-screen");
     $("evidence-review").hidden = false;
-    $("evidence-review").innerHTML = `<div class="screen-link-status">GROUND SCANNERS CONNECTED · 2 READINGS</div>` +
+    $("evidence-review").innerHTML = `<div class="screen-link-status">Two clues from your scanners</div>` +
       Object.values(Mission1.sites).map(site => `<article><div class="sample-visual sample-${site.id}" role="img" aria-label="Illustrative ${site.name.toLowerCase()} sample"></div><h3>${site.name}</h3><p>${site.reading}</p><div class="pattern-bars pattern-${site.id}" aria-hidden="true"></div></article>`).join("") +
       `<p class="training-note screen-note">Illustrative training patterns · simulated readings</p><p class="review-conclusion">${Mission1.report}</p>`;
   }
   function inspectScreen() {
     if (state.observations.length < 2) {
-      showRadio("Our screen is packed and ready", "Place a scanner at each sample first. Once both readings arrive, we can unfold this screen and compare them.");
+      showRadio("Our screen is ready", "Find both clues first. Then we can look at them on our screen.");
       return;
     }
     if (state.screenDeployed) { showFieldReadings(); return; }
-    showRadio("Set up your field screen", "Both scanners have sent their findings! Set this portable display on the marked ground, open its stand, and take a closer look.", {
-      confirm: { label: "Place screen on the ground", action: () => {
+    showRadio("Set up your field screen", "Both clues are ready! Put down the screen to see them together.", {
+      confirm: { label: "Put down screen", action: () => {
         scanSite = Mission1.fieldScreen;
         $("scan-panel").hidden = false;
         $("scan-preview").hidden = true;
         $("scan-start").hidden = true;
         $("scan-progress").value = 0;
         $("scan-instruction").textContent = "Opening kickstand · connecting both scanners…";
-        setMessage("The stand is opening. Our two scanners are connecting to the screen!");
+        setMessage("Screen opening! Here come our clues.");
         startDeployment("field-screen", () => {
           update(Mission1.deployScreen(state));
           showFieldReadings();
@@ -335,10 +337,10 @@ const ExpeditionUI = (() => {
   }
   function celebration() {
     showRadio("Earth received our finding!", copy.celebration);
-    $("pip-continue").textContent = "View discovery journal";
+    $("pip-continue").textContent = "Open my journal";
     continueAction = () => {
       if (store.sessionSaved || store.journalSaved) location.assign("./index.html?completed=1#missions");
-      else showRadio("Your discovery journal", copy.journalOffline, { journal: true });
+      else showRadio("My discovery journal", copy.journalOffline, { journal: true });
     };
   }
   function sendReport() {
@@ -366,7 +368,7 @@ const ExpeditionUI = (() => {
     } else if (id === "communications") {
       if (state.reported) { celebration(); return; }
       showRadio(state.reviewed ? "Your report is ready" : "Check your field screen first", state.reviewed ? Mission1.report : copy.reviewWaiting,
-        state.reviewed ? { confirm: { label: "Send reviewed finding", action: sendReport } } : {});
+        state.reviewed ? { confirm: { label: "Send to Earth", action: sendReport } } : {});
     } else if (id === "habitat") {
       showRadio("A home a long way from home", copy.habitat);
     }
@@ -378,16 +380,16 @@ const ExpeditionUI = (() => {
     const sunny = Mission2.shifts[state.shift] === "sunlight";
     const options = Object.values(Mission2.commands).filter(command => command.station === stationId);
     const result = selected && Mission2.preview(state, selected);
-    const warning = result && { power: "Warning: the battery would reach 0 and the mission would end.",
-      oxygen: "Warning: oxygen safety would reach 0 and the mission would end.",
-      science: "Warning: this is the last shift and no report would reach Earth.",
+    const warning = result && { power: "Your battery would run out. Try another choice.",
+      oxygen: "Your suit would run out of air. Try another choice.",
+      science: "This is your last turn. Earth still needs your report.",
       success: "This completes all three shifts with the report sent!" }[result.outcome];
-    return `<p class="command-forecast"><span aria-hidden="true">${sunny ? "☀" : "☾"}</span> Shift ${state.shift + 1} of 3 · ${sunny ? "Sunlight: panels add +4" : "Shadow: no solar charging"} · Battery ${state.battery} / 9 · Oxygen ${state.oxygen} / 3</p>
+    return `<p class="command-forecast"><span aria-hidden="true">${sunny ? "☀" : "☾"}</span> ${sunny ? "The sun adds 4 battery this turn." : "The sun is away. Your battery must last."}</p>
       <div class="command-options">${options.map(command => {
         const ready = Mission2.available(state, command.id);
         return `<button type="button" class="command-option" data-command="${command.id}" aria-pressed="${selected === command.id}"${ready ? "" : " disabled"}><span aria-hidden="true">${command.icon}</span><b>${command.name}</b><small>${ready ? command.effect : "Already sent"}</small><em>−${command.cost} energy · oxygen ${command.oxygen > 0 ? "+1" : "−1"}</em></button>`;
       }).join("")}</div>
-      ${result ? `<div class="command-preview${result.outcome && result.outcome !== "success" ? " risk" : ""}" role="status"><p><b>Preview</b> Battery ${state.battery} + ${result.solar} solar − ${result.cost} = <strong>${result.battery} / 9</strong> · Oxygen ${state.oxygen} → <strong>${result.oxygen} / 3</strong></p>${warning ? `<p>${warning}</p>` : ""}</div>` : ""}`;
+      ${result ? `<div class="command-preview${result.outcome && result.outcome !== "success" ? " risk" : ""}" role="status"><p><b>After this choice</b> Battery <strong>${result.battery} / 9</strong> · Air <strong>${result.oxygen} / 3</strong></p>${warning ? `<p>${warning}</p>` : ""}</div>` : ""}`;
   }
   function openStation(id) {
     stationId = id;
@@ -458,7 +460,7 @@ const ExpeditionUI = (() => {
   document.querySelectorAll("[data-inspect]").forEach(button => button.addEventListener("click", () => inspect(button.dataset.inspect)));
   document.querySelectorAll("[data-hint]").forEach(button => button.addEventListener("click", hint));
   document.querySelectorAll("[data-open-journal]").forEach(button => button.addEventListener("click", () =>
-    showRadio(power ? "Flight recorder" : "Your discovery journal", power ? copy.recorder : copy.journalOpen, { journal: true })));
+    showRadio(power ? "Flight recorder" : "My discovery journal", power ? copy.recorder : copy.journalOpen, { journal: true })));
   render();
   if (document.body.dataset.expedition === "2d") { if (Rules.finished(state)) finale(); else welcome(); }
   addEventListener("pageshow", event => {
