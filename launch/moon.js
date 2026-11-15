@@ -1,4 +1,4 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js";
+import * as THREE from "../vendor/three/three.module.js";
 
 const mount = document.getElementById("moon-view");
 const intro = document.getElementById("intro");
