@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="generator" content="ChatGPT/Codex — AI-assisted development">
+  <meta name="ai-assistance" content="AI-assisted mission brainstorming, code, procedural visuals, dialogue, educational text, and tests. See credits.html and provenance.json.">
+  <link rel="describedby" href="credits.html" type="text/html">
+  <link rel="describedby" href="provenance.json" type="application/json">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1015">
+  <link rel="icon" href="favicon.ico">
+  <title>Moonbase Commander · Mission 03: Into the Lava Tube</title>
+  <link rel="stylesheet" href="surface/surface.css">
+  <link rel="stylesheet" href="shared/expedition.css">
+  <style>
+    .m3-hud-bars {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+      min-width: 210px;
+    }
+    .m3-bar-row {
+      display: grid;
+      grid-template-columns: 74px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: #d7e6f5;
+    }
+    .m3-bar-track {
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      overflow: hidden;
+    }
+    .m3-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+    .m3-bar-energy { background: #ffc267; }
+    .m3-bar-oxygen { background: #7be3b5; }
+    .m3-shift-badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      background: rgba(138, 229, 241, 0.14);
+      color: #9cebf5;
+    }
+    dialog.m3-dialog {
+      max-width: 460px;
+      width: calc(100% - 24px);
+      border: 1px solid rgba(138, 229, 241, 0.35);
+      border-radius: 14px;
+      background: #101822;
+      color: #eef5fc;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
+    }
+    dialog.m3-dialog::backdrop {
+      background: rgba(5, 8, 13, 0.72);
+    }
+    .m3-dialog h2 {
+      margin: 6px 0 10px;
+      font-size: 1.25rem;
+    }
+    .m3-reading {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(138, 229, 241, 0.1);
+      border-left: 3px solid #8ae5f1;
+      font-size: 0.9rem;
+      margin: 12px 0;
+    }
+    .m3-fact {
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: #c5d7e8;
+      margin: 10px 0 6px;
+    }
+    .m3-source {
+      font-size: 0.76rem;
+      color: #8fb4d4;
+      margin: 0 0 14px;
+    }
+    .m3-dialog-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .m3-dialog-actions button {
+      cursor: pointer;
+    }
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}
+  </script>
+  <script src="shared/mission3.js" defer></script>
+  <script type="module">
+    import("./surface/mission3-scene.js").catch(error => {
+      document.querySelector("#loading").textContent =
+        "The 3D surface is unavailable (check your internet connection for Three.js).";
+      console.error(error);
+    });
+  </script>
+</head>
+<body data-phase="briefing">
+  <main id="scene" aria-label="Interactive lunar cave expedition"></main>
+
+  <header>
+    <span class="brand"><i></i> Moonbase <strong>Commander</strong></span>
+    <nav class="surface-nav">
+      <a href="./index.html#missions">← Missions</a>
+      <a href="./3d-test.html">Mission 01 3D ↗</a>
+    </nav>
+  </header>
+
+  <section id="briefing">
+    <small class="eyebrow">MISSION 03 / LUNAR LAVA TUBE (PROTOTYPE)</small>
+    <h1>Into the<br><em>lava tube.</em></h1>
+    <p>
+      Manage <strong>4 shifts</strong> with <strong>5/9 energy</strong> and <strong>3/3 oxygen</strong>.
+      Locate the collapsed cave pit, collect <strong>3 structural scans</strong> inside
+      (<strong>2 energy</strong> each), and return to Surface Communications to send 1 report.
+    </p>
+    <button id="deploy" class="primary" disabled>Begin cave expedition <b>↘</b></button>
+    <p id="loading" role="status">Preparing lunar cave sector…</p>
+    <p class="training-note">Standalone Mission 3 preview · simulated readings · real NASA pit science</p>
+    <p><a class="credits-link" href="./credits.html">AI-assisted · Credits</a></p>
+  </section>
+
+  <section id="live" hidden aria-label="Mission 3 instruments">
+    <div id="telemetry">
+      <strong id="scan-count">0 / 3 cave scans</strong>
+      <span id="shift-badge" class="m3-shift-badge">SHIFT 1 / 4 · SUNLIGHT (+4 ENERGY)</span>
+      <div class="m3-hud-bars">
+        <div class="m3-bar-row">
+          <span>Energy</span>
+          <div class="m3-bar-track"><div id="m3-energy-bar" class="m3-bar-fill m3-bar-energy" style="width:55.5%"></div></div>
+          <strong id="m3-energy-text">5 / 9</strong>
+        </div>
+        <div class="m3-bar-row">
+          <span>Oxygen</span>
+          <div class="m3-bar-track"><div id="m3-oxygen-bar" class="m3-bar-fill m3-bar-oxygen" style="width:100%"></div></div>
+          <strong id="m3-oxygen-text">3 / 3</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="objective" id="objective" aria-live="polite"></div>
+
+    <div class="waypoint" aria-live="off">
+      <span class="waypoint-arrow" id="waypoint-arrow" aria-hidden="true">↑</span>
+      <span id="waypoint-name"></span>
+    </div>
+
+    <div class="camera-tools">
+      <button id="view" type="button" title="Switch camera (V)">First person · V</button>
+      <a class="credits-link" href="./credits.html">AI-assisted · Credits</a>
+    </div>
+
+    <div class="expedition-tools">
+      <button type="button" id="m3-restart">Restart Mission 3</button>
+      <button type="button" id="toggle-pad" aria-pressed="false">Movement pad</button>
+    </div>
+
+    <div id="reticle" aria-hidden="true"></div>
+    <p id="help">
+      <span class="desktop">WASD move · Drag or arrows to look · E scan / interact · V camera</span>
+      <span class="mobile">Use arrows to walk · Drag to look · Tap button to scan</span>
+    </p>
+    <button id="use" type="button" hidden></button>
+
+    <div id="pad" aria-label="Movement">
+      <button type="button" data-key="KeyW" aria-label="Forward">↑</button>
+      <button type="button" data-key="KeyA" aria-label="Left">←</button>
+      <button type="button" data-key="KeyS" aria-label="Backward">↓</button>
+      <button type="button" data-key="KeyD" aria-label="Right">→</button>
+    </div>
+  </section>
+
+  <dialog id="m3-modal" class="m3-dialog" aria-labelledby="m3-modal-title">
+    <small id="m3-modal-eyebrow" class="eyebrow">MISSION 03 / SCANNER LOG</small>
+    <h2 id="m3-modal-title"></h2>
+    <p id="m3-modal-body"></p>
+    <div id="m3-modal-reading" class="m3-reading" hidden></div>
+    <p id="m3-modal-fact" class="m3-fact" hidden></p>
+    <a id="m3-modal-source" class="m3-source" target="_blank" rel="noopener noreferrer" hidden></a>
+    <div class="m3-dialog-actions">
+      <button type="button" id="m3-modal-restart" hidden>Play again</button>
+      <button type="button" id="m3-modal-close" class="primary">Continue</button>
+    </div>
+  </dialog>
+</body>
+</html>
