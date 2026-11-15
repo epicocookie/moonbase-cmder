@@ -127,8 +127,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     third = !third;
     renderer.shadowMap.autoUpdate = third;
     renderer.shadowMap.needsUpdate = true;
-    setShiftLock(false);
-    $("shift-lock").hidden = !third;
+    setShiftLock(document.pointerLockElement === canvas);
     $("view").textContent = (third ? "Third" : "First") + " person · V";
     aimCamera();
     requestFrame();
@@ -140,18 +139,23 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     $("shift-lock").setAttribute("aria-pressed", String(on));
     $("shift-lock").textContent = "Shift lock " + (on ? "on" : "off");
   }
-  function toggleLock(useMouse) {
-    if (!third || phase !== "walk") return;
-    setShiftLock(!shiftLocked);
-    if (shiftLocked && useMouse && !document.pointerLockElement) {
-      canvas.requestPointerLock?.()?.catch?.(() => {});
-    } else if (!shiftLocked && document.pointerLockElement === canvas) {
-      document.exitPointerLock();
-    }
+  // Shift (or the Shift lock button) switches the mouse between steering the view (locked)
+  // and a free cursor for clicking. The button shows the state in both views; in third person
+  // a locked mouse also gives the over-the-shoulder view.
+  function toggleMouse() {
+    if (phase !== "walk") return;
+    if (document.pointerLockElement === canvas) { document.exitPointerLock(); return; }
+    canvas.requestPointerLock?.()?.catch?.(() => {});
   }
-  $("shift-lock").onclick = e => toggleLock(e.pointerType === "mouse");
+  // Touch has no mouse lock, so the button only switches the third-person shoulder view there.
+  $("shift-lock").onclick = e => {
+    if (e.pointerType === "mouse") toggleMouse();
+    else if (third && phase === "walk") setShiftLock(!shiftLocked);
+  };
   document.addEventListener("pointerlockchange", () => {
-    if (!document.pointerLockElement && phase === "walk") setShiftLock(false);
+    // A drag that started before the lock must not keep steering once the mouse is free.
+    pointer = null;
+    if (phase === "walk") setShiftLock(document.pointerLockElement === canvas);
   });
 
   function canStand(x, z) {
@@ -232,10 +236,6 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     ExpeditionUI.run.checkpoint({ x: suit.position.x, z: suit.position.z, yaw, pitch, third, shiftLocked });
     requestFrame();
   };
-  $("toggle-pad").onclick = () => {
-    const visible = document.body.classList.toggle("show-movement-pad");
-    $("toggle-pad").setAttribute("aria-pressed", String(visible));
-  };
 
   addEventListener("keydown", e => {
     if (phase !== "walk" || e.target.closest("input, textarea, select") || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -245,7 +245,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
       look(e.code === "ArrowLeft" ? -35 : e.code === "ArrowRight" ? 35 : 0, e.code === "ArrowUp" ? -25 : e.code === "ArrowDown" ? 25 : 0);
     }
     if (!e.repeat && e.code === "KeyV") changeView();
-    if (!e.repeat && (e.code === "ShiftLeft" || e.code === "ShiftRight")) toggleLock(true);
+    if (!e.repeat && (e.code === "ShiftLeft" || e.code === "ShiftRight")) toggleMouse();
     if (!e.repeat && e.code === "KeyE") use();
   });
   addEventListener("keyup", e => keys.delete(e.code));
@@ -284,10 +284,11 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     }
   };
   canvas.onpointermove = e => {
-    if (phase !== "walk" || document.pointerLockElement || pointer !== e.pointerId) return;
+    // Only a held button drags the view, so a free mouse can roam the screen.
+    if (phase !== "walk" || document.pointerLockElement || pointer !== e.pointerId || (e.pointerType === "mouse" && !(e.buttons & 1))) return;
     look(e.clientX - lastX, e.clientY - lastY); lastX = e.clientX; lastY = e.clientY;
   };
-  canvas.onlostpointercapture = () => { pointer = null; };
+  canvas.onlostpointercapture = canvas.onpointerup = () => { pointer = null; };
   document.addEventListener("mousemove", e => {
     if (phase === "walk" && document.pointerLockElement === canvas) look(e.movementX, e.movementY);
   });

@@ -28,15 +28,9 @@ body[data-expedition="3d"] .expedition-tools{position:fixed;right:4vw;bottom:54p
 .expedition-tools button{font:11px/1.4 Consolas,monospace}.waypoint{position:fixed;left:4vw;top:163px;display:flex;align-items:center;gap:10px;color:#e9c485;background:#10171fe8;padding:8px 12px;font:11px/1.5 Consolas,monospace}.waypoint-arrow{font-size:24px;display:inline-block}.objective{max-width:min(690px,92vw)}
 body[data-expedition="3d"] .pip-dialog button{width:auto;display:block}body[data-expedition="3d"] .pip-dialog-actions button{flex:1}
 body[data-expedition="3d"] #use{bottom:24%;max-width:90vw}
-body.show-movement-pad #pad{display:grid;position:fixed;left:4vw;bottom:16px;grid-template-columns:repeat(3,44px);gap:3px}
-body.show-movement-pad #pad button{height:44px;touch-action:none;user-select:none}
-body.show-movement-pad #pad button:first-child{grid-column:2}body.show-movement-pad #pad button:nth-child(2){grid-column:1}
-body.show-movement-pad #help{display:none}
-@media(max-width:720px){body.show-movement-pad[data-expedition="3d"] .expedition-tools{bottom:116px;max-width:85vw}body.show-movement-pad[data-expedition="3d"] #use{bottom:210px}}
 @media(max-width:720px){.pip-dialog{padding:20px}.pip-dialog-head{gap:14px}.pip-dialog h2{font-size:22px}.pip-dialog-head>.pip-avatar{transform:scale(.8);margin-left:-5px}.discovery-journal figure{float:none;width:min(220px,100%);margin:20px 0}.saved-journal{padding:18px}.saved-journal>summary span{display:block;margin:7px 0 0}.field-dashboard .intro{min-height:235px}.hero-pip{transform:scale(1.2);margin-right:18px}.field-dashboard .intro h1{font-size:40px}.objective-row{align-items:flex-start;flex-direction:column;gap:0}.field-tools>span{width:100%;margin:5px 0 0}.observations-grid{grid-template-columns:1fr}.report-panel{align-items:stretch;flex-direction:column;gap:6px}.field-map{height:395px}.field-dashboard .map-stop{min-width:116px;padding:10px}.map-stop b{font-size:11px}.map-stop small{font-size:8px}.map-shadow{left:75%;top:40%}.map-sunlit{left:69%;top:77%}.map-uplink{left:28%;top:19%}.map-pip{left:25%;top:68%}.field-dashboard .topbar{flex-direction:column;align-items:flex-start}.waypoint{top:179px;max-width:92vw}.objective{top:117px;font-size:12px}.expedition-step{padding:9px 11px;font-size:10px}.expedition-tools button{padding:9px 10px}body[data-expedition="3d"] .expedition-tools{bottom:58px;right:4vw;max-width:72vw}body[data-expedition="3d"] #help{max-width:56vw;font-size:10px}body[data-expedition="3d"] #use{bottom:30%}body[data-expedition="3d"] .camera-tools{bottom:12px}}
 @media(pointer:coarse),(any-pointer:coarse){body[data-expedition="3d"] .expedition-tools{bottom:116px;max-width:85vw}body[data-expedition="3d"] #help{bottom:260px;max-width:90vw}body[data-expedition="3d"] #use{bottom:210px;right:4vw;left:auto;transform:none;max-width:65vw}.waypoint{top:190px}}
 @media(max-height:490px){.pip-dialog{max-height:94dvh}.waypoint{top:138px}.objective{top:100px}body[data-expedition="3d"] .expedition-tools{bottom:45px}body[data-expedition="3d"] #use{bottom:35%}}
-@media(max-height:490px){body.show-movement-pad[data-expedition="3d"] .expedition-tools{bottom:45px}body.show-movement-pad[data-expedition="3d"] #use{bottom:35%}}
 @media(max-height:490px) and (pointer:coarse){body[data-expedition="3d"] #help{display:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}.pip-dialog::backdrop{backdrop-filter:none}}
 
@@ -89,12 +83,16 @@ body[data-expedition="3d"] .pip-dialog.is-scanning #scan-preview { height:100px;
 .power-forecast .forecast-note{margin-top:14px}
 .command-forecast{font:11px/1.6 Consolas,monospace;color:#b7e9e6;border-left:3px solid #8ae5f1;background:#112a35;padding:12px 14px}
 .command-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}
-.pip-dialog .command-option{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left}
-.command-option>span{font-size:22px;color:var(--amber)}
-.command-option small{color:#aebfc7;font-size:11px}
-.command-option em{font:normal 10px/1.5 Consolas,monospace;color:var(--amber)}
+#pip-radio .command-option{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px 10px;width:100%;margin:0;text-align:left;font:13px/1.4 Inter,"Segoe UI",sans-serif}
+.command-option>span{font-size:22px;line-height:1;color:var(--amber)}
+.command-option b{font-size:15px}
+.command-option small,.command-option em{grid-column:1/-1}
+.command-option small{color:#aebfc7;font-size:12px}
+.command-option em{font:normal 11px/1.5 Consolas,monospace;color:var(--amber)}
 .pip-dialog .command-option[aria-pressed="true"]{border-color:var(--amber);background:#2d3a33}
 .command-preview{margin-top:14px;border:1px solid #6b9d89;border-left:3px solid #84c3a7;background:#18302b;padding:12px 14px;border-radius:6px}
 .command-preview p{margin:0;font-size:13px}.command-preview p+p{margin-top:6px}
 .command-preview.risk{border-color:#da846f;border-left-color:#da846f;background:#3a2a2e}
 @media(max-width:720px){.map-habitat{left:66%;top:56%}}
+/* Keep Pip's close button a square box centered on the × in every view. */
+#pip-radio .pip-x{display:grid;place-items:center;justify-content:center;align-content:center;width:34px;height:34px;padding:0;margin:0 0 auto auto;font-size:22px;line-height:1;border-radius:6px}

@@ -37,7 +37,8 @@ and Earth acknowledges your finding. Dialogue reveals gradually and includes
 **Show full text**. The expedition targets a 3–5 minute first visit. There is no countdown,
 resource cost, or failure state. **Return to Pip** brings you back without losing
 your findings; **Ask Pip** points toward the next task.
-The optional **Movement pad** supports taps, held arrows, and keyboard activation.
+On touchscreens, the movement pad supports taps and held arrows. In 3D, **Shift**
+locks the mouse to steer the view, and frees it again for clicking.
 
 After the transmission, **View discovery journal** returns to selection with the journal expanded. Active
 progress lasts in the current browser tab. The latest completed journal stays in
@@ -107,7 +108,7 @@ establish eligibility. Guidance: https://github.com/nasa/spaceapps/discussions/1
 ## Tutorial status and later work
 
 The previous 3D tutorial page has been repurposed as the guided Mission 1
-expedition. Its descent, movement, camera controls, on-screen movement pad, and
+expedition. Its descent, movement, camera controls, touchscreen movement pad, and
 interaction controls remain, alongside Pip's welcome and hints. The original
 2D survival tutorial remains at [classic-mission.html](classic-mission.html).
 

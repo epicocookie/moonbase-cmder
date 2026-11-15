@@ -32,7 +32,7 @@ button.primary { background: var(--amber); color: #201b16; font-weight: 700; pad
 #shift-lock[aria-pressed="true"] { color: var(--amber); border-color: currentColor; }
 .bottom { position: fixed; bottom: 50px; left: 4vw; max-width: min(560px,90vw); }
 #log p { margin: 5px 0 0; color: #c5ced6; } #log p:not(:first-child) { display: none; }
-#help { position: fixed; bottom: 12px; left: 4vw; margin: 0; color: #d0d7df; }
+#help { position: fixed; bottom: 12px; left: 4vw; margin: 0; color: #d0d7df; background: #10171f99; }
 #reticle { position: fixed; left: 50%; top: 50%; width: 4px; height: 4px; background: white; border-radius: 50%; pointer-events: none; }
 #pad,.mobile { display: none; }
 dialog { background: #111820; color: inherit; border: 1px solid #626b74; border-top: 3px solid var(--amber); padding: 24px; width: min(390px,92vw); }
