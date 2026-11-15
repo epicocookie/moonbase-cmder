@@ -16,6 +16,8 @@ Currently in development.
 | Intro and mission selection | [index.html](index.html), [launch/](launch/) |
 | Playable 2D dashboard | [dashboard.html](dashboard.html) shares Mission 1 progress with 3D |
 | Mission 2 | [dashboard-mission2.html](dashboard-mission2.html) (2D), [3d-mission2.html](3d-mission2.html) (3D), and rules in [shared/mission2.js](shared/mission2.js) |
+| Mission 3 | [mission3-3d.html](mission3-3d.html), [shared/mission3.js](shared/mission3.js), and [cave guide](docs/mission3.md) |
+| Shared 3D models | [surface/models.js](surface/models.js) supplies the outpost, Pip, astronaut, scanners, and field display |
 | Classic mission | [classic-mission.html](classic-mission.html) and [classic/](classic/) for its styles |
 | 3D tutorial | [3d-test.html](3d-test.html) and [surface/](surface/) for scene, movement, cameras, and styles |
 | Shared expedition | [shared/mission1.js](shared/mission1.js), [shared/expedition-ui.js](shared/expedition-ui.js), and [shared/surface-run.js](shared/surface-run.js) |
@@ -28,8 +30,8 @@ From this folder, run `python -m http.server 8127 --bind 127.0.0.1` and open
 [Moonbase Commander](http://127.0.0.1:8127/). No install or build step.
 
 The intro leads to mission selection. Missions 1 and 2 are playable in 3D or from
-their 2D dashboards; Mission 3 is coming soon. Switch views during a run to continue
-the same observations. Mission 1, **A Clue in the Cold**, is a safe expedition for
+their 2D dashboards; Mission 3 is available in 3D from the same menu. Switching
+between the 2D and 3D views of Mission 1 or 2 preserves that mission's progress. Mission 1, **A Clue in the Cold**, is a safe expedition for
 ages 7–12: meet Pip and place ground scanners at the shaded crater and sunlit reference
 in either order. Watch them unfold and collect readings, then deploy a portable
 field screen near Communications. Compare both samples and review the evidence
@@ -43,7 +45,7 @@ toggles mouse lock. **Q** or **Esc** releases the cursor, and dragging works wit
 a free cursor. **V** changes POV and **Space** makes a low-gravity lunar jump.
 Touch controls include a **Jump** button. Near the habitat, an optional marked
 spot lets you plant an American flag. It stays for the current browser tab
-across both 3D missions.
+across the 3D missions.
 
 After the transmission, **View discovery journal** returns to selection with the journal expanded. Active
 progress lasts in the current browser tab. The latest completed journal stays in
@@ -66,6 +68,19 @@ replaying never touches the Mission 1 journal. It is offered directly from
 selection, so judges can try it without finishing Mission 1. In 3D the sunlight
 dims during the shadow shifts. The classic page now uses the same calculation.
 
+**Mission 3, Into the Lava Tube**, uses the shared models and surface controls.
+Run a seismic entrance test (+4 surface charge, −1 energy), take three cave scans
+(2 energy each), then return to Surface Comms to review and send the report
+(1 energy). Resources change after confirmed scans finish. Canceling costs
+nothing, and repeated inspections reopen the same reading. Progress and position
+resume in this tab, while the last report stays in this browser. Cave jumping and
+third-person cameras respect the roof and passage boundaries. See the
+[cave guide and science notes](docs/mission3.md).
+
+Run `node tests/mission3-flow.cjs` for cave rules, costs, save validation, and replay.
+Optional browser checks in `tests/mission3.browser.cjs` use Playwright and a local
+server on port 8127 to traverse the cave, scan, resume, and report.
+
 Run `node tests/mission-flow.cjs` for scan orders, report gating, view handoff,
 pose persistence, journal retention, replay, blocked storage, classic win/loss, and
 Mission 2's three worked runs, preview/confirm parity, saves and replay. Without a
@@ -79,7 +94,7 @@ science on lunar polar ice. Pip speaks through text radio, with no audio require
 The intro includes a rotating 3D Moon using NASA/LRO color and elevation maps.
 Drag it or use the left/right arrow keys when focused; rotation can be paused.
 Reduced motion and a texture-based fallback are supported. The intro reuses the
-surface mission's Three.js CDN version. Mission imagery and credits are in
+surface mission's bundled Three.js version. The 3D library is served from the same host as the game. Mission imagery and credits are in
 [launch/assets/CREDITS.md](launch/assets/CREDITS.md).
 
 ## Credits and AI/SI assistance
@@ -120,3 +135,16 @@ interaction controls remain, alongside Pip's welcome and hints. The original
 A dedicated optional controls tutorial is a requested future addition, to be
 planned with the team when game work resumes. It is not implemented as a
 separate walkthrough yet. This credits pass does not change gameplay.
+
+## Public web hosting
+
+The game is a static site and can run on GitHub Pages. The `.nojekyll` file keeps
+Pages from processing the source as a Jekyll project. Publish the repository root
+of `feat/mission-launch-flow` to serve this release. Pushing updates to that branch
+updates the site. The app uses relative file paths so it works at the repository
+URL prefix. The pinned Three.js files and their MIT license are in `vendor/three/`.
+Science links open NASA separately; gameplay does not require a CDN request.
+
+The shorter prompts show the next task first. Children can open **How to play**
+for controls or **Curious? Learn more** for science. Mission 3's detailed resource
+math is available under **Battery and air details**.
