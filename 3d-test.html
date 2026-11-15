@@ -35,10 +35,12 @@
     <div id="telemetry"><strong id="observation-count">0 / 2 observations</strong><span id="equipment-status">2 scanners packed · field screen packed</span></div>
     <div class="objective" id="objective" aria-live="polite"></div>
     <div class="waypoint" aria-live="off"><span class="waypoint-arrow" id="waypoint-arrow" aria-hidden="true">↑</span><span id="waypoint-name"></span></div>
-    <div class="camera-tools"><button id="view" title="Switch camera (V)">First person · V</button><button id="shift-lock" aria-pressed="false">Shift lock off</button><a class="credits-link" href="./credits.html" aria-label="Credits and AI assistance in code and visuals">AI-assisted · Credits</a></div>
+    <div class="camera-tools"><button id="shift-lock" aria-pressed="false">Shift lock off</button><a class="credits-link" href="./credits.html" aria-label="Credits and AI assistance in code and visuals">AI-assisted · Credits</a></div>
     <div class="expedition-tools"><button type="button" data-hint>Ask Pip · Hint</button><button type="button" data-open-journal>Field journal</button><button type="button" id="return-pip">Return to Pip</button></div>
+    <span id="mouse-status" class="sr-only" role="status"></span>
+    <button id="jump" type="button" aria-label="Jump in low lunar gravity">Jump ↑</button>
     <div id="reticle" aria-hidden="true"></div>
-    <p id="help"><span class="desktop">WASD move · Drag or arrows to aim · E place / use · V view · Shift lock/free mouse</span><span class="mobile">Move with arrows · Drag to look · Tap Explore</span></p>
+    <p id="help"><span class="desktop">WASD move · Drag or arrows to aim · E place / use · Space jump · V view · Shift lock · Q / Esc release</span><span class="mobile">Move with arrows · Drag to look · Tap Jump or Explore</span></p>
     <button id="use" hidden></button>
     <div id="pad" aria-label="Movement"><button data-key="KeyW" aria-label="Forward">↑</button><button data-key="KeyA" aria-label="Left">←</button><button data-key="KeyS" aria-label="Backward">↓</button><button data-key="KeyD" aria-label="Right">→</button></div>
   </section>
