@@ -136,6 +136,7 @@ const ExpeditionUI = (() => {
   }
   radio.querySelector(".pip-x").onclick = () => radio.close();
   $("pip-continue").onclick = () => {
+    if (scanSite) { radio.close(); return; }
     if (revealed < fullMessage.length) { revealText(); return; }
     continueAction();
   };
