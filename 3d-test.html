@@ -22,7 +22,7 @@
   <section id="briefing">
     <small class="eyebrow">MISSION 01 / LUNAR OUTPOST</small>
     <h1>A clue<br>in the <em>cold.</em></h1>
-    <p>Carry your ground scanners into the field. Collect two readings, unfold your portable screen, and investigate a clue in the lunar shadows.</p>
+    <p>Is there ice in the shadows? Explore with Pip and find two clues.</p>
     <div data-expedition-progress aria-label="Expedition progress"></div>
     <p class="safe-note"><span class="pip-avatar mini" aria-hidden="true"><i></i><i></i></span> Pip has your back. Take your time.</p>
     <button id="deploy" class="primary" disabled>Begin expedition <b>↘</b></button>
@@ -36,11 +36,11 @@
     <div class="objective" id="objective" aria-live="polite"></div>
     <div class="waypoint" aria-live="off"><span class="waypoint-arrow" id="waypoint-arrow" aria-hidden="true">↑</span><span id="waypoint-name"></span></div>
     <div class="camera-tools"><button id="shift-lock" aria-pressed="false">Shift lock off</button><a class="credits-link" href="./credits.html" aria-label="Credits and AI assistance in code and visuals">AI-assisted · Credits</a></div>
-    <div class="expedition-tools"><button type="button" data-hint>Ask Pip · Hint</button><button type="button" data-open-journal>Field journal</button><button type="button" id="return-pip">Return to Pip</button></div>
+    <div class="expedition-tools"><button type="button" data-hint>Help, Pip!</button><button type="button" data-open-journal>Field journal</button><button type="button" id="return-pip">Back to Pip</button></div>
     <span id="mouse-status" class="sr-only" role="status"></span>
     <button id="jump" type="button" aria-label="Jump in low lunar gravity">Jump ↑</button>
     <div id="reticle" aria-hidden="true"></div>
-    <p id="help"><span class="desktop">WASD move · Drag or arrows to aim · E place / use · Space jump · V view · Shift lock · Q / Esc release</span><span class="mobile">Move with arrows · Drag to look · Tap Jump or Explore</span></p>
+    <details id="help" class="control-guide"><summary>How to play</summary><p class="desktop">W forward · A left · S back · D right<br>Drag to look · E to use · Space to jump</p><p class="mobile">Use the arrows to move. Drag to look. Tap Jump or Explore.</p><p class="desktop">Shift locks the mouse. Q or Esc frees it. V changes your view.</p></details>
     <button id="use" hidden></button>
     <div id="pad" aria-label="Movement"><button data-key="KeyW" aria-label="Forward">↑</button><button data-key="KeyA" aria-label="Left">←</button><button data-key="KeyS" aria-label="Backward">↓</button><button data-key="KeyD" aria-label="Right">→</button></div>
   </section>

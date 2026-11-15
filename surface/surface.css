@@ -81,3 +81,8 @@ body[data-phase="briefing"] #jump,body[data-phase="descent"] #jump { display:non
 
 #help { max-width:92vw; }
 #use:disabled,.camera-tools button:disabled,.expedition-tools button:disabled,#pad button:disabled { opacity:.4; }
+
+.control-guide { max-width:min(620px,70vw); border:1px solid #77818a66; border-radius:5px; font:11px/1.6 Consolas,monospace; }
+.control-guide summary { cursor:pointer; padding:3px 0; }
+.control-guide p { margin:8px 0 0; }
+@media(pointer:coarse),(any-pointer:coarse) { body[data-expedition="3d"] #help { bottom:260px; max-width:90vw; } }
