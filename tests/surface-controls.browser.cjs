@@ -62,8 +62,29 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
       await page.waitForFunction(() => document.querySelector("#mouse-status").textContent.includes("unavailable"));
       assert.equal(await page.locator("#shift-lock").getAttribute("aria-pressed"), "false");
     }
+    // The flag is shared scenery, independent of mission progress and replay.
+    await page.goto("http://127.0.0.1:8127/index.html");
+    await page.evaluate(() => sessionStorage.setItem("moonbase.expedition.mission1.v2", JSON.stringify({
+      state: { observations: [], reported: false, welcomeSeen: true },
+      pose: { x: -6.5, z: 7, yaw: 0, pitch: 0, third: false }
+    })));
+    await page.goto("http://127.0.0.1:8127/3d-test.html#resume");
+    await page.waitForFunction(() => document.body.dataset.phase === "walk");
+    await page.locator("#use").click();
+    await page.locator("#pip-send").click();
+    await page.waitForFunction(() => ExpeditionUI.flagPlanted);
+    assert.equal(await page.evaluate(() => sessionStorage.getItem("moonbase.surface.flag.v1")), "planted");
+    await page.reload();
+    await page.waitForFunction(() => document.body.dataset.phase === "walk");
+    assert.equal(await page.evaluate(() => ExpeditionUI.flagPlanted), true);
+    await page.locator("#use").click();
+    assert.equal(await page.locator("#pip-send").isVisible(), false);
+    await page.locator(".pip-x").click();
+    await page.goto("http://127.0.0.1:8127/3d-mission2.html?new=1");
+    await page.waitForFunction(() => !document.querySelector("#deploy").disabled);
+    assert.equal(await page.evaluate(() => ExpeditionUI.flagPlanted), true);
     assert.deepEqual(errors, []);
-    console.log("Passed: both POVs, mouse capture, Q/Esc release, free-cursor clicks, jump/landing/reset, and denied capture in both 3D missions.");
+    console.log("Passed: both POVs, mouse capture, Q/Esc release, free-cursor clicks, jump/landing/reset, denied capture in both 3D missions, and shared flag planting/persistence.");
   } finally {
     await browser.close();
   }

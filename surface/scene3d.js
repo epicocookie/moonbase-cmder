@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { runTutorial } from "./tutorial.js";
+import { createOutpostFlag } from "./flag.js";
 
 const mount = document.querySelector("#scene");
 
@@ -516,7 +517,10 @@ marker.add(beacon, beaconTop); scene.add(marker);
 const panelBounds = [-3.2, 3.2].map(x => new THREE.Box3(
   new THREE.Vector3(x - 1.68, -0.16, -5.7), new THREE.Vector3(x + 1.68, 1.45, -3.3)
 ));
-const solids = obstacles.map(object => new THREE.Box3().setFromObject(object)).concat(panelBounds);
+const flag = createOutpostFlag(scene, groundHeight, renderer, ExpeditionUI.flagPlanted);
+stations.push(flag.station);
+addLabel("Flag site", flag.station.x, groundHeight(flag.station.x, flag.station.z) + 0.65, flag.station.z, "#e4c58c");
+const solids = obstacles.map(object => new THREE.Box3().setFromObject(object)).concat(panelBounds, flag.collider);
 
 function updateInstrumentStatus() {
   for (const [id, equipment] of instruments) {
@@ -596,7 +600,8 @@ function animateEquipment(time, reduced) {
   pipHead.position.y = speaking && !reduced ? 0.79 + Math.sin(time * 4) * 0.012 : 0.79;
   eyes.color.setHex(speaking ? 0xbaffdd : 0x8ae5f1);
   for (const eye of pipEyes) eye.scale.y = speaking && !reduced && Math.sin(time * 1.6) > 0.98 ? 0.2 : 1;
-  return !reduced && (speaking || transmitting || Boolean(scanEffect));
+  const flagMoving = flag.update(time, reduced);
+  return flagMoving || (!reduced && (speaking || transmitting || Boolean(scanEffect)));
 }
 // In Mission 2 the sky follows the shift forecast: full sun first, then dim shadow shifts.
 const sunIntensity = sunlight.intensity;

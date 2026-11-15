@@ -37,6 +37,14 @@ const ExpeditionUI = (() => {
   let run = fresh ? store.begin() : store.load() || store.begin();
   if (fresh) history.replaceState(null, "", location.pathname);
   let state = run.state;
+  const flagKey = "moonbase.surface.flag.v1";
+  let flagPlanted = false, flagPlanting = false;
+  try { flagPlanted = sessionStorage.getItem(flagKey) === "planted"; } catch { /* Planting remains available without storage. */ }
+  document.addEventListener("expeditionflagplanted", () => {
+    flagPlanted = true; flagPlanting = false;
+    try { sessionStorage.setItem(flagKey, "planted"); } catch { /* Keep the flag for this page. */ }
+    signal("expeditionflagchange", { planted: true });
+  });
   const radio = document.createElement("dialog");
   radio.id = "pip-radio";
   radio.className = "pip-dialog";
@@ -429,7 +437,18 @@ const ExpeditionUI = (() => {
   }
 
   function inspect(id, options = {}) {
-    if (id === "pip") hint();
+    if (id === "flag") {
+      if (flagPlanted) showRadio("A flag beside the outpost", "You planted this flag! Its horizontal support holds the fabric open here on the Moon.");
+      else if (flagPlanting) showRadio("The flag is settling into place", "Our pole is almost anchored. Look at the marked spot beside the habitat.");
+      else showRadio("Leave a flag at the outpost", "This spot is clear. Shall we anchor the pole and set up an American flag beside our habitat?", {
+        confirm: { label: "Plant American flag", action: () => {
+          if (flagPlanting || flagPlanted) return;
+          flagPlanting = true;
+          radio.close();
+          signal("expeditionplantflag", {});
+        } }
+      });
+    } else if (id === "pip") hint();
     else if (!power) inspectSite(id, options);
     else if (Rules.finished(state)) debrief();
     else if (Object.hasOwn(Mission2.stations, id)) openStation(id);
@@ -445,7 +464,7 @@ const ExpeditionUI = (() => {
   addEventListener("pageshow", event => {
     if (event.persisted) { state = store.load()?.state || state; render(); }
   });
-  return { get state() { return state; }, get finished() { return Rules.finished(state); },
+  return { get flagPlanted() { return flagPlanted; }, get state() { return state; }, get finished() { return Rules.finished(state); },
     next: () => Rules.next(state), isSite: id => !power && Object.hasOwn(Mission1.sites, id),
     needsScan: id => !power && Object.hasOwn(Mission1.sites, id) && !state.observations.includes(id),
     run: store, welcome, inspect, hint, celebration: finale, renderJournal, renderDebrief };

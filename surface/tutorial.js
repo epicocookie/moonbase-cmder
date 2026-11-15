@@ -259,6 +259,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
       if (unscanned) action = aligned ? (ExpeditionUI.state.deployed.includes(nearby.id) ? "Resume scanner · " : "Place scanner · ") : "Aim at ";
       else if (nearby.id === "field-screen") action = ExpeditionUI.state.screenDeployed ? "Open " : "Place ";
       else if (nearby.id === "pip") action = "Talk to ";
+      else if (nearby.id === "flag") action = nearby.planted ? "Visit " : "Plant ";
       $("use").textContent = action + nearby.name + " · E";
     }
   }
@@ -284,7 +285,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     scanInProgress = detail.active && !detail.preview;
     updateNavigation();
   });
-  for (const event of ["expeditionscan", "expeditiondeploy", "expeditiontransmit", "expeditionpip"]) document.addEventListener(event, requestFrame);
+  for (const event of ["expeditionscan", "expeditiondeploy", "expeditiontransmit", "expeditionpip", "expeditionplantflag", "expeditionflagchange"]) document.addEventListener(event, requestFrame);
   document.addEventListener("expeditionchange", () => { updateNavigation(); requestFrame(); });
   $("return-pip").onclick = () => {
     suit.position.copy(start); suit.rotation.y = yaw = 0; pitch = -0.06;
