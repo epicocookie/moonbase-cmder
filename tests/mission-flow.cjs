@@ -39,9 +39,9 @@ for (const order of [["shadow", "sunlit"], ["sunlit", "shadow"]]) {
   assert.equal(saved.pose.x, 4);
   assert.equal(saved.pose.third, true);
   state = Mission1.observe(saved.state, order[1]);
-  assert.equal(Mission1.next(state).id, "communications");
+  assert.equal(Mission1.next(state).id, "field-screen");
   assert.equal(Mission1.submit(state).reported, false, "Review is required before reporting");
-  state = Mission1.review(state);
+  state = Mission1.review(Mission1.deployScreen(state));
   current.update(state);
   current = page(session, local);
   assert.equal(current.load().state.reviewed, true, "Review survives a view switch");
@@ -76,7 +76,7 @@ const blockedContext = vm.createContext({ Mission1,
 vm.runInContext(fs.readFileSync(path.join(root, "shared/surface-run.js"), "utf8"), blockedContext);
 const blocked = vm.runInContext("surfaceRun", blockedContext);
 let state = blocked.begin().state;
-state = Mission1.submit(Mission1.review(Mission1.observe(Mission1.observe(state, "shadow"), "sunlit")));
+state = Mission1.submit(Mission1.review(Mission1.deployScreen(Mission1.observe(Mission1.observe(state, "shadow"), "sunlit"))));
 blocked.update(state); blocked.saveJournal(state);
 assert.equal(blocked.load().state.reported, true);
 assert.equal(blocked.getJournal().state.reported, true);
@@ -163,7 +163,7 @@ function page2(session, local) {
   const session = new Map(), local = new Map();
   let views = page2(session, local);
   let one = views.one.begin().state;
-  one = Mission1.submit(Mission1.review(Mission1.observe(Mission1.observe(one, "shadow"), "sunlit")));
+  one = Mission1.submit(Mission1.review(Mission1.deployScreen(Mission1.observe(Mission1.observe(one, "shadow"), "sunlit"))));
   views.one.update(one); views.one.saveJournal(one);
   let two = Mission2.resolve(views.two.begin().state, "report");
   views.two.update(two);
@@ -190,7 +190,33 @@ function page2(session, local) {
 
 assert.equal(Mission1.restore({ observations: ["shadow", "sunlit"], reported: true }).reviewed, true);
 assert.equal(Mission1.restore({ observations: ["shadow"], reported: false }).reviewed, false);
-assert.equal(Mission1.review(Mission1.create()).reviewed, false);
+assert.equal(Mission1.review(Mission1.deployScreen(Mission1.create())).reviewed, false);
 assert.equal(Mission1.restore({ observations: [], reported: false, reviewed: true }).reviewed, false);
 
 console.log("Passed: both scan orders, review gating, legacy saves, shared progress/pose, replay, persistent journal, invalid/blocked storage, classic win/loss, and Mission 2 worked runs, preview, storage and replay.");
+
+// Equipment placement persists independently of scan completion.
+{
+  let state = Mission1.create();
+  assert.equal(Mission1.deployScreen(state).screenDeployed, false);
+  state = Mission1.deploy(state, "shadow");
+  assert.deepEqual(state.deployed, ["shadow"]);
+  assert.equal(state.observations.length, 0);
+  assert.equal(Mission1.deploy(state, "shadow"), state);
+  assert.equal(Mission1.deploy(state, "__proto__"), state);
+  state = Mission1.observe(Mission1.observe(state, "shadow"), "sunlit");
+  assert.equal(Mission1.review(state).reviewed, false, "Field screen must be placed before reviewing");
+  state = Mission1.deployScreen(state);
+  assert.equal(Mission1.next(state).id, "field-screen");
+  state = Mission1.review(state);
+  assert.equal(Mission1.next(state).id, "communications");
+  assert.equal(Mission1.submit(state).reported, true);
+  assert.equal(Mission1.restore({ observations: ["shadow"], deployed: [], reported: false }), null);
+  const legacy = Mission1.restore({ observations: ["shadow", "sunlit"], reported: true });
+  assert.deepEqual(legacy.deployed, ["shadow", "sunlit"]);
+  assert.equal(legacy.screenDeployed, true);
+  const saved = page(new Map(), new Map());
+  saved.begin(); saved.update(state);
+  assert.equal(saved.load().state.screenDeployed, true);
+}
+console.log("Passed: scanner placement, portable screen gate, and legacy equipment saves.");

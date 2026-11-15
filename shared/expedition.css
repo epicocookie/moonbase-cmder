@@ -96,3 +96,24 @@ body[data-expedition="3d"] .pip-dialog.is-scanning #scan-preview { height:100px;
 @media(max-width:720px){.map-habitat{left:66%;top:56%}}
 /* Keep Pip's close button a square box centered on the × in every view. */
 #pip-radio .pip-x{display:grid;place-items:center;justify-content:center;align-content:center;width:34px;height:34px;padding:0;margin:0 0 auto auto;font-size:22px;line-height:1;border-radius:6px}
+
+/* Portable screen chassis and the readings received from deployed scanners. */
+#scan-target { transform:translate(-50%,-50%); }
+#scan-preview { cursor:default; }
+.pip-dialog.is-field-screen { width:min(760px,94vw); border:5px solid #3a5360; border-top:5px solid #8bbcbf; background:linear-gradient(145deg,#142e3b,#081923); box-shadow:0 18px 70px #0009,inset 0 0 0 1px #7a9da455; }
+.is-field-screen #evidence-review { gap:16px; }
+.screen-link-status,.screen-note { grid-column:1/-1; }
+.screen-link-status { color:#a0e9ce; font:10px/1.6 Consolas,monospace; letter-spacing:.08em; border-bottom:1px solid #4e7c8155; padding-bottom:12px; }
+.sample-visual { width:100%; height:110px; border:1px solid #6a9295; border-radius:8px; }
+.sample-shadow { background:repeating-linear-gradient(55deg,transparent 0 18px,#ddffffbb 19px 21px,transparent 23px 40px),repeating-linear-gradient(-35deg,transparent 0 30px,#ddffff99 31px 33px,transparent 35px 54px),linear-gradient(125deg,#8ab5ce,#365a76); }
+.sample-sunlit { background:repeating-linear-gradient(28deg,transparent 0 18px,#49392e85 19px 21px,transparent 22px 36px),repeating-radial-gradient(ellipse at 24% 35%,#d0ae7b 0 3px,#ab8862 4px 7px,#816445 8px 10px); }
+.pattern-bars { height:30px; margin-top:16px; opacity:.8; border-bottom:1px solid #8dbdc166; }
+.pattern-shadow { background:repeating-linear-gradient(90deg,#85e1e2 0 3px,transparent 4px 11px); clip-path:polygon(0 15%,15% 20%,25% 70%,35% 30%,48% 40%,58% 90%,68% 45%,80% 75%,90% 20%,100% 30%,100% 100%,0 100%); }
+.pattern-sunlit { background:repeating-linear-gradient(90deg,#e4bf85 0 3px,transparent 4px 11px); clip-path:polygon(0 45%,15% 30%,25% 40%,35% 35%,48% 50%,58% 45%,68% 35%,80% 50%,90% 40%,100% 45%,100% 100%,0 100%); }
+.field-device { position:relative; margin-top:16px; padding:22px; border:4px solid #3a5360; border-top-color:#8bbcbf; border-radius:12px; background:linear-gradient(145deg,#142e3b,#081923); box-shadow:0 10px 20px #0005; }
+.field-device::before { content:""; position:absolute; top:-15px; left:calc(50% - 30px); width:60px; height:12px; border:4px solid #3a5360; border-bottom:0; border-radius:7px 7px 0 0; }
+.field-device h2 { margin:0 0 10px; font-size:24px; }
+.field-device>p { font-size:13px; color:#afc9cf; }
+.field-device-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:18px; }
+.field-device-actions button:disabled { opacity:.45; cursor:default; }
+@media(max-width:480px) { .sample-visual { height:80px; } .is-field-screen #evidence-review { gap:10px; } .pip-dialog.is-field-screen { padding:16px; } }

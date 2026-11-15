@@ -54,3 +54,30 @@ dialog button span { font-size: 12px; color: #bfc8d0; } #close { justify-content
 .credits-link { color: #b0c4c9; font: 10px/1.5 Consolas, monospace; text-underline-offset: 3px; }
 .camera-tools .credits-link { font-size: 9px; text-align: right; }
 @media (max-width: 520px) { header .brand { font-size: 10px; } .surface-nav { gap: 5px 12px; } .surface-nav a { font-size: 11px; } }
+
+/* Lightly translucent controls stay solid during interaction. */
+.camera-tools button,.expedition-tools button,#use,#pad button,#jump {
+  opacity:.75; background:#172029bd; transition:opacity .15s;
+}
+.camera-tools button:hover,.camera-tools button:focus-visible,
+.expedition-tools button:hover,.expedition-tools button:focus-visible,
+#use:hover,#use:focus-visible,#pad button:hover,#pad button:focus-visible,
+#jump:hover,#jump:focus-visible,#shift-lock[aria-pressed="true"],#pad button:active,#jump:active {
+  opacity:1;
+}
+#live button:focus-visible,#jump:focus-visible { outline:2px solid var(--amber); outline-offset:3px; }
+#jump { position:fixed; right:4vw; bottom:12px; z-index:2; display:none; font:12px/1.4 Consolas,monospace; }
+#jump:disabled { opacity:.4; }
+body[data-airborne="true"] #reticle { opacity:.45; }
+@media(pointer:coarse),(any-pointer:coarse) {
+  #jump { display:block; left:calc(4vw + 150px); right:auto; bottom:16px; height:44px; padding:9px; }
+}
+@media(max-width:480px) and (pointer:coarse) {
+  #jump { left:4vw; bottom:160px; height:36px; }
+}
+@media(prefers-reduced-motion:reduce) { #live button,#jump { transition:none; } }
+
+body[data-phase="briefing"] #jump,body[data-phase="descent"] #jump { display:none; }
+
+#help { max-width:92vw; }
+#use:disabled,.camera-tools button:disabled,.expedition-tools button:disabled,#pad button:disabled { opacity:.4; }

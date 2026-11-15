@@ -2,6 +2,8 @@
 export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stations, solids, marker, pipHead, animateEquipment }) {
   const $ = id => document.getElementById(id);
   const canvas = renderer.domElement;
+  canvas.tabIndex = 0;
+  canvas.setAttribute("aria-label", "Lunar surface. WASD to move, Space to jump, Shift to lock the mouse, Q to release, V to change view.");
   const clamp = THREE.MathUtils.clamp;
   const keys = new Set();
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -44,7 +46,8 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   suit.visible = false;
 
   let phase = "briefing", third = false, nearby = null, yaw = 0, pitch = -0.06;
-  let shiftLocked = false, gait = 0, breath = 0;
+  let shiftLocked = false, lockRequested = false, gait = 0, breath = 0;
+  let verticalVelocity = 0, airborne = false;
   let descentStart = 0, stride = 0, pointer = null, lastX = 0, lastY = 0;
   const eye = new THREE.Vector3(), direction = new THREE.Vector3(), target = new THREE.Vector3();
   const boom = new THREE.Vector3(), hit = new THREE.Vector3(), ray = new THREE.Ray();
@@ -65,7 +68,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     phase = document.body.dataset.phase = value;
     keys.clear();
     pointer = null;
-    if (value !== "walk" && document.pointerLockElement) document.exitPointerLock();
+    if (value !== "walk") releaseMouse();
     requestFrame();
   }
   function frameBriefing() {
@@ -103,8 +106,10 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   function land(announce = true) {
     setPhase("walk");
     suit.position.copy(start); suit.rotation.y = yaw = 0; pitch = -0.06;
+    resetJump();
     $("briefing").hidden = $("skip").hidden = true;
     $("live").hidden = false;
+    canvas.focus({ preventScroll: true });
     updateNavigation();
     aimCamera();
     checkStation();
@@ -128,41 +133,75 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     renderer.shadowMap.autoUpdate = third;
     renderer.shadowMap.needsUpdate = true;
     setShiftLock(document.pointerLockElement === canvas);
-    $("view").textContent = (third ? "Third" : "First") + " person · V";
+    document.body.dataset.view = third ? "third" : "first";
     aimCamera();
     requestFrame();
   }
-  $("view").onclick = changeView;
 
   function setShiftLock(on) {
     shiftLocked = on;
     $("shift-lock").setAttribute("aria-pressed", String(on));
     $("shift-lock").textContent = "Shift lock " + (on ? "on" : "off");
+    aimCamera();
+    requestFrame();
   }
-  // Shift (or the Shift lock button) switches the mouse between steering the view (locked)
-  // and a free cursor for clicking. The button shows the state in both views; in third person
-  // a locked mouse also gives the over-the-shoulder view.
+  function releaseMouse() {
+    lockRequested = false;
+    if (pointer !== null && canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
+    pointer = null;
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
+    setShiftLock(false);
+  }
+  function captureFailed() {
+    lockRequested = false;
+    setShiftLock(false);
+    $("mouse-status").textContent = "Mouse capture unavailable. Drag on the surface to look around.";
+  }
   function toggleMouse() {
     if (phase !== "walk") return;
-    if (document.pointerLockElement === canvas) { document.exitPointerLock(); return; }
-    canvas.requestPointerLock?.()?.catch?.(() => {});
+    if (lockRequested || document.pointerLockElement === canvas) { releaseMouse(); return; }
+    if (!canvas.requestPointerLock) { captureFailed(); return; }
+    lockRequested = true;
+    $("mouse-status").textContent = "";
+    try { canvas.requestPointerLock()?.catch(captureFailed); }
+    catch { captureFailed(); }
   }
-  // Touch has no mouse lock, so the button only switches the third-person shoulder view there.
-  $("shift-lock").onclick = e => {
-    if (e.pointerType === "mouse") toggleMouse();
-    else if (third && phase === "walk") setShiftLock(!shiftLocked);
+  $("shift-lock").onclick = event => {
+    if (event.pointerType === "touch" || event.pointerType === "pen") {
+      if (third && phase === "walk") setShiftLock(!shiftLocked);
+    } else toggleMouse();
   };
   document.addEventListener("pointerlockchange", () => {
-    // A drag that started before the lock must not keep steering once the mouse is free.
     pointer = null;
-    if (phase === "walk") setShiftLock(document.pointerLockElement === canvas);
+    const captured = document.pointerLockElement === canvas;
+    if (captured && (!lockRequested || phase !== "walk")) { releaseMouse(); return; }
+    if (!captured) lockRequested = false;
+    else canvas.focus({ preventScroll: true });
+    setShiftLock(captured);
   });
+  document.addEventListener("pointerlockerror", captureFailed);
 
+  function resetJump() {
+    verticalVelocity = 0;
+    airborne = false;
+    $("jump").disabled = false;
+    document.body.dataset.airborne = "false";
+  }
+  function jump() {
+    if (phase !== "walk" || airborne) return;
+    verticalVelocity = 2.2;
+    airborne = true;
+    $("jump").disabled = true;
+    document.body.dataset.airborne = "true";
+    checkStation();
+    requestFrame();
+  }
+  $("jump").onclick = jump;
   function canStand(x, z) {
     return Math.abs(x) <= 16 && Math.abs(z) <= 16 && !solids.some(box =>
       x > box.min.x - 0.23 && x < box.max.x + 0.23 && z > box.min.z - 0.23 && z < box.max.z + 0.23);
   }
-  function walk(dt) {
+  function walk(dt, flightDt = dt) {
     let forward = Number(keys.has("KeyW")) - Number(keys.has("KeyS"));
     let side = Number(keys.has("KeyD")) - Number(keys.has("KeyA"));
     const step = 2.8 * dt / (Math.hypot(forward, side) || 1);
@@ -172,7 +211,12 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     const oldX = p.x, oldZ = p.z;
     if (canStand(p.x + dx, p.z)) p.x += dx;
     if (canStand(p.x, p.z + dz)) p.z += dz;
-    p.y = groundHeight(p.x, p.z);
+    const ground = groundHeight(p.x, p.z);
+    if (airborne) {
+      p.y += verticalVelocity * flightDt - 0.5 * 1.62 * flightDt * flightDt;
+      verticalVelocity -= 1.62 * flightDt;
+      if (p.y <= ground) { p.y = ground; resetJump(); }
+    } else p.y = ground;
     const distance = Math.hypot(p.x - oldX, p.z - oldZ);
     if (third && shiftLocked) suit.rotation.y = yaw;
     else if (distance > 0) suit.rotation.y = Math.atan2(oldX - p.x, oldZ - p.z);
@@ -193,13 +237,15 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   function updateNavigation() {
     const next = ExpeditionUI.next();
     marker.visible = !ExpeditionUI.finished && !scanInProgress;
-    marker.position.set(next.x, groundHeight(next.x, next.z), next.z);
+    const markerX = next.x + (next.id === "field-screen" ? 1.1 : 0);
+    marker.position.set(markerX, groundHeight(markerX, next.z), next.z);
     const dx = next.x - suit.position.x, dz = next.z - suit.position.z;
     $("waypoint-name").textContent = `${next.name} · ${Math.round(Math.hypot(dx, dz))} m`;
     $("waypoint-arrow").style.transform = `rotate(${Math.atan2(dx, -dz) + yaw}rad)`;
     pipHead.rotation.y = Math.atan2(suit.position.x - 1.6, suit.position.z - 6);
   }
   function checkStation() {
+    if (airborne) { $("use").hidden = true; $("reticle").classList.remove("scan-ready"); return; }
     const next = stations.filter(station => Math.hypot(station.x - suit.position.x, station.z - suit.position.z) <= 1.8)
       .sort((a, b) => Math.hypot(a.x - suit.position.x, a.z - suit.position.z) - Math.hypot(b.x - suit.position.x, b.z - suit.position.z))[0];
     nearby = next;
@@ -208,7 +254,14 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     const aligned = !unscanned || scanAligned(nearby);
     $("reticle").classList.toggle("scan-ready", Boolean(unscanned && aligned));
     $("use").disabled = !aligned;
-    if (nearby) $("use").textContent = (unscanned ? aligned ? "Scan " : "Aim at " : nearby.id === "pip" ? "Talk to " : "Explore ") + nearby.name + " · E";
+    if (nearby) {
+      let action = "Explore ";
+      if (unscanned) action = aligned ? (ExpeditionUI.state.deployed.includes(nearby.id) ? "Resume scanner · " : "Place scanner · ") : "Aim at ";
+      else if (nearby.id === "field-screen") action = ExpeditionUI.state.screenDeployed ? "Open " : "Place ";
+      else if (nearby.id === "pip") action = "Talk to ";
+      else if (nearby.id === "flag") action = nearby.planted ? "Visit " : "Plant ";
+      $("use").textContent = action + nearby.name + " · E";
+    }
   }
   function scanAligned(station) {
     const sample = new THREE.Vector3(station.x, groundHeight(station.x, station.z) + 0.6, station.z);
@@ -216,7 +269,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     return camera.getWorldDirection(new THREE.Vector3()).dot(offset) > 0.86;
   }
   function use() {
-    if (!nearby || phase !== "walk" || $("use").disabled) return;
+    if (!nearby || airborne || phase !== "walk" || $("use").disabled) return;
     ExpeditionUI.inspect(nearby.id, { aligned: ExpeditionUI.isSite(nearby.id) });
   }
   $("use").onclick = use;
@@ -228,17 +281,29 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     scanInProgress = detail.active;
     updateNavigation();
   });
-  for (const event of ["expeditionscan", "expeditiontransmit", "expeditionpip"]) document.addEventListener(event, requestFrame);
+  document.addEventListener("expeditiondeploy", ({ detail }) => {
+    scanInProgress = detail.active && !detail.preview;
+    updateNavigation();
+  });
+  for (const event of ["expeditionscan", "expeditiondeploy", "expeditiontransmit", "expeditionpip", "expeditionplantflag", "expeditionflagchange"]) document.addEventListener(event, requestFrame);
   document.addEventListener("expeditionchange", () => { updateNavigation(); requestFrame(); });
   $("return-pip").onclick = () => {
     suit.position.copy(start); suit.rotation.y = yaw = 0; pitch = -0.06;
+    resetJump();
     setPhase("walk"); aimCamera(); checkStation(); updateNavigation();
     ExpeditionUI.run.checkpoint({ x: suit.position.x, z: suit.position.z, yaw, pitch, third, shiftLocked });
     requestFrame();
   };
 
   addEventListener("keydown", e => {
-    if (phase !== "walk" || e.target.closest("input, textarea, select") || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (phase !== "walk" || e.target.closest("input, textarea, select, [contenteditable=true]") || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.code === "KeyQ" || e.code === "Escape") { releaseMouse(); return; }
+    if (e.code === "Space") {
+      if (e.target.closest("button, a, [role=button]")) return;
+      e.preventDefault();
+      if (!e.repeat) jump();
+      return;
+    }
     if (["KeyW","KeyA","KeyS","KeyD"].includes(e.code)) { keys.add(e.code); requestFrame(); }
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.code)) {
       e.preventDefault();
@@ -249,7 +314,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     if (!e.repeat && e.code === "KeyE") use();
   });
   addEventListener("keyup", e => keys.delete(e.code));
-  addEventListener("blur", () => { keys.clear(); pointer = null; });
+  addEventListener("blur", () => { keys.clear(); releaseMouse(); });
   for (const button of $("pad").querySelectorAll("button")) {
     let pressedAt = 0;
     button.onpointerdown = e => {
@@ -276,12 +341,9 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   }
   canvas.onpointerdown = e => {
     if (phase !== "walk" || e.button !== 0) return;
+    canvas.focus({ preventScroll: true });
     pointer = e.pointerId; lastX = e.clientX; lastY = e.clientY;
     canvas.setPointerCapture(pointer);
-    if (e.pointerType === "mouse" && !document.pointerLockElement) {
-      // Drag-to-look also works on browsers that decline pointer lock.
-      canvas.requestPointerLock?.()?.catch?.(() => {});
-    }
   };
   canvas.onpointermove = e => {
     // Only a held button drags the view, so a free mouse can roam the screen.
@@ -302,12 +364,15 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   addEventListener("resize", resize);
   addEventListener("surfaceassetready", requestFrame);
   reducedMotion.addEventListener("change", requestFrame);
+  document.body.dataset.view = "first";
+  document.body.dataset.airborne = "false";
   resize(); frameBriefing(); updateNavigation();
   $("loading").hidden = true; $("deploy").disabled = false;
   // Only the visible astronaut casts a moving shadow.
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
   addEventListener("pagehide", () => {
+    releaseMouse();
     if (phase === "walk" || phase === "station") {
       ExpeditionUI.run.checkpoint({ x: suit.position.x, z: suit.position.z, yaw, pitch, third, shiftLocked });
     }
@@ -321,7 +386,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
         suit.position.set(pose.x, groundHeight(pose.x, pose.z), pose.z);
         yaw = pose.yaw; pitch = clamp(pose.pitch, -1.1, 1.05);
         if (pose.third) changeView();
-        setShiftLock(third && pose.shiftLocked);
+        setShiftLock(false);
         aimCamera(); checkStation();
       }
       updateNavigation();
@@ -334,22 +399,24 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
       cancelAnimationFrame(pendingFrame);
       pendingFrame = previous = 0;
       keys.clear();
-      pointer = null;
+      releaseMouse();
     } else requestFrame();
   });
   function draw(now) {
     pendingFrame = 0;
-    const dt = Math.min(0.05, Math.max(0, (now - previous) / 1000)); previous = now;
+    const frameDelta = Math.min(0.25, Math.max(0, (now - previous) / 1000));
+    const dt = Math.min(0.05, frameDelta);
+    previous = now;
     if (phase === "descent") {
       const t = clamp((now - descentStart) / 3000, 0, 1);
       const eased = t * t * (3 - 2 * t);
       camera.position.lerpVectors(introPosition, landingEye, eased);
       camera.lookAt(introFocus.lerpVectors(introTarget, landingTarget, eased));
       if (t === 1) land();
-    } else if (phase === "walk") walk(dt);
+    } else if (phase === "walk") walk(dt, frameDelta);
     const equipmentMoving = animateEquipment(now / 1000, reducedMotion.matches);
     renderer.render(scene, camera);
-    if (equipmentMoving || phase === "descent" || (phase === "walk" && ((third && !reducedMotion.matches) || keys.size))) requestFrame();
+    if (equipmentMoving || phase === "descent" || (phase === "walk" && ((third && !reducedMotion.matches) || keys.size || airborne))) requestFrame();
     else previous = 0;
   }
 }

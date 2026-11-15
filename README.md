@@ -30,15 +30,20 @@ From this folder, run `python -m http.server 8127 --bind 127.0.0.1` and open
 The intro leads to mission selection. Missions 1 and 2 are playable in 3D or from
 their 2D dashboards; Mission 3 is coming soon. Switch views during a run to continue
 the same observations. Mission 1, **A Clue in the Cold**, is a safe expedition for
-ages 7–12: meet Pip, scan the shaded crater and sunlit reference in either order,
-align your scanner and watch each reading appear, then review your evidence at
-Communications before sending your possible-ice report. Pip introduces the mystery
+ages 7–12: meet Pip and place ground scanners at the shaded crater and sunlit reference
+in either order. Watch them unfold and collect readings, then deploy a portable
+field screen near Communications. Compare both samples and review the evidence
+on that screen before sending your possible-ice report. Pip introduces the mystery
 and Earth acknowledges your finding. Dialogue reveals gradually and includes
 **Show full text**. The expedition targets a 3–5 minute first visit. There is no countdown,
 resource cost, or failure state. **Return to Pip** brings you back without losing
 your findings; **Ask Pip** points toward the next task.
 On touchscreens, the movement pad supports taps and held arrows. In 3D, **Shift**
-locks the mouse to steer the view, and frees it again for clicking.
+toggles mouse lock. **Q** or **Esc** releases the cursor, and dragging works with
+a free cursor. **V** changes POV and **Space** makes a low-gravity lunar jump.
+Touch controls include a **Jump** button. Near the habitat, an optional marked
+spot lets you plant an American flag. It stays for the current browser tab
+across both 3D missions.
 
 After the transmission, **View discovery journal** returns to selection with the journal expanded. Active
 progress lasts in the current browser tab. The latest completed journal stays in

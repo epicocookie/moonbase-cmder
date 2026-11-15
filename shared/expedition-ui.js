@@ -37,6 +37,14 @@ const ExpeditionUI = (() => {
   let run = fresh ? store.begin() : store.load() || store.begin();
   if (fresh) history.replaceState(null, "", location.pathname);
   let state = run.state;
+  const flagKey = "moonbase.surface.flag.v1";
+  let flagPlanted = false, flagPlanting = false;
+  try { flagPlanted = sessionStorage.getItem(flagKey) === "planted"; } catch { /* Planting remains available without storage. */ }
+  document.addEventListener("expeditionflagplanted", () => {
+    flagPlanted = true; flagPlanting = false;
+    try { sessionStorage.setItem(flagKey, "planted"); } catch { /* Keep the flag for this page. */ }
+    signal("expeditionflagchange", { planted: true });
+  });
   const radio = document.createElement("dialog");
   radio.id = "pip-radio";
   radio.className = "pip-dialog";
@@ -45,7 +53,7 @@ const ExpeditionUI = (() => {
     <p id="pip-message" aria-hidden="true"></p><p id="pip-accessible-message" class="sr-only" aria-live="polite"></p>
     <button type="button" id="pip-reveal" hidden>Show full text</button>
     <div id="scan-panel" hidden>
-      <div id="scan-preview" tabindex="0" role="group" aria-label="Scanner aiming area. Use arrow keys or drag to center the target.">
+      <div id="scan-preview" role="img" aria-label="Live view from the ground scanner">
         <span class="scan-crosshair" aria-hidden="true"></span><span id="scan-target" aria-hidden="true"></span><span class="scan-sweep" aria-hidden="true"></span>
       </div>
       <p id="scan-instruction" role="status"></p><progress id="scan-progress" max="1" value="0" aria-label="Scan progress"></progress>
@@ -56,7 +64,7 @@ const ExpeditionUI = (() => {
   document.body.append(radio);
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   let previousFocus = null, fullMessage = "", revealed = 0, animation = null;
-  let scanSite = null, aim = { x: 45, y: -30 }, dragging = null, scanning = false;
+  let scanSite = null, scanning = false;
   let continueAction = () => radio.close(), confirmAction = null;
   function signal(name, detail) { document.dispatchEvent(new CustomEvent(name, { detail })); }
   function setMessage(message) {
@@ -96,8 +104,9 @@ const ExpeditionUI = (() => {
     animation = null;
     scanning = false;
     scanSite = null;
-    radio.classList.remove("is-scanning");
+    radio.classList.remove("is-scanning", "is-field-screen");
     signal("expeditionscan", { active: false });
+    signal("expeditiondeploy", { active: false });
     signal("expeditiontransmit", { active: false });
   }
   function setConfirm(confirm) {
@@ -111,6 +120,7 @@ const ExpeditionUI = (() => {
     $("pip-title").textContent = title;
     setMessage(message);
     $("scan-panel").hidden = $("evidence-review").hidden = $("uplink").hidden = true;
+    $("scan-preview").hidden = $("scan-start").hidden = false;
     continueAction = () => radio.close();
     signal("expeditionpip", { speaking: true });
     $("pip-reading").hidden = !site;
@@ -136,6 +146,7 @@ const ExpeditionUI = (() => {
   }
   radio.querySelector(".pip-x").onclick = () => radio.close();
   $("pip-continue").onclick = () => {
+    if (scanSite) { radio.close(); return; }
     if (revealed < fullMessage.length) { revealText(); return; }
     continueAction();
   };
@@ -148,7 +159,7 @@ const ExpeditionUI = (() => {
   function setText(id, text) { if ($(id)) $(id).textContent = text; }
   function render() {
     const ended = Rules.finished(state);
-    const position = power ? state.shift : state.observations.length;
+    const position = power ? state.shift : state.reviewed ? 3 : state.observations.length;
     document.querySelectorAll("[data-expedition-progress]").forEach(container => {
       container.innerHTML = copy.steps.map((label, index) => {
         const done = index < position || (ended && !power);
@@ -163,13 +174,20 @@ const ExpeditionUI = (() => {
     });
     if (power) renderPower();
     else {
+      document.querySelectorAll('[data-inspect="field-screen"]').forEach(button => {
+        button.disabled = state.observations.length < 2;
+        button.textContent = state.screenDeployed ? "Open field screen" : "Place field screen";
+      });
+      const packed = Object.keys(Mission1.sites).length - state.deployed.length;
+      setText("equipment-status", `${packed ? packed + " scanner" + (packed === 1 ? "" : "s") + " packed" : "Scanners placed"} · ${state.screenDeployed ? "screen deployed" : "screen packed"}`);
+      setText("field-device-status", state.screenDeployed ? "Screen deployed · readings received" : "Portable screen packed in your kit");
       setText("observation-count", `${state.observations.length} / ${Object.keys(Mission1.sites).length} observations`);
       document.querySelectorAll("[data-observation]").forEach(container => {
         const site = Mission1.sites[container.dataset.observation];
         const collected = state.observations.includes(site.id);
         container.classList.toggle("collected", collected);
         container.querySelector("[data-reading]").textContent = collected ? site.reading : "Ready for your first scan";
-        container.querySelector("[data-recorded]").textContent = collected ? "✓ Recorded in your journal" : "Not yet explored";
+        container.querySelector("[data-recorded]").textContent = collected ? "✓ Reading received from ground scanner" : state.deployed.includes(site.id) ? "Scanner placed · ready to resume" : "Scanner in your kit";
       });
     }
     document.dispatchEvent(new CustomEvent("expeditionchange", { detail: { state } }));
@@ -209,7 +227,7 @@ const ExpeditionUI = (() => {
   function hint() {
     const site = Rules.next(state);
     const message = power ? copy.hint(state) : state.reported ? copy.hintDone :
-      site.id === "communications" ? copy.hintReport : copy.hintSite(site);
+      site.id === "field-screen" ? copy.hintScreen : site.id === "communications" ? copy.hintReport : copy.hintSite(site);
     showRadio("A little nudge from Pip", message);
     document.dispatchEvent(new CustomEvent("expeditionhint", { detail: { site } }));
   }
@@ -220,53 +238,45 @@ const ExpeditionUI = (() => {
     showRadio("A new piece of the mystery", both ? copy.bothFound : site.found, { site });
     $("pip-continue").textContent = both ? "Let's review our findings" : "Find the other sample";
   }
-  function updateAim() {
-    const aligned = Math.hypot(aim.x, aim.y) <= 15;
-    $("scan-target").style.transform = `translate(calc(-50% + ${aim.x}px), calc(-50% + ${aim.y}px))`;
-    $("scan-preview").classList.toggle("aligned", aligned);
-    $("scan-start").disabled = !aligned || scanning;
-    $("scan-instruction").textContent = aligned ? "Target aligned. Ready to scan." : "Drag the target into the center, or use the arrow keys.";
+  function startDeployment(id, done) {
+    radio.classList.add("is-scanning");
+    scanning = true;
+    $("scan-start").disabled = true;
+    setConfirm(null);
+    $("pip-continue").textContent = "Cancel placement";
+    signal("expeditiondeploy", { active: true, id, progress: 0 });
+    animation = { elapsed: 0, duration: 1800,
+      paint(progress) {
+        $("scan-progress").value = progress;
+        signal("expeditiondeploy", { active: true, id, progress });
+      },
+      done
+    };
   }
   function beginScan(site) {
-    showRadio(copy.scanTitle, copy.scanIntro);
+    const deployed = state.deployed.includes(site.id);
+    showRadio(deployed ? "Your scanner is waiting" : "Place your ground scanner", deployed ? "Your equipment is still here. Resume the scan to collect this sample's reading." : copy.scanIntro);
     scanSite = site;
     $("scan-preview").dataset.site = site.id;
-    aim = { x: 45, y: -30 };
     $("scan-panel").hidden = false;
     $("scan-progress").value = 0;
-    $("pip-continue").textContent = "Cancel scan";
-    updateAim();
-    $("scan-preview").focus();
+    $("scan-start").disabled = false;
+    $("scan-start").textContent = deployed ? "Resume scan" : "Place scanner";
+    $("scan-instruction").textContent = deployed ? "Scanner standing by." : "Marked sample ready. Set the scanner down here.";
+    $("pip-continue").textContent = "Cancel placement";
+    if (!deployed) signal("expeditiondeploy", { active: true, id: site.id, preview: true, progress: 0 });
+    $("scan-start").focus();
   }
-  const preview = $("scan-preview");
-  preview.addEventListener("pointerdown", event => {
-    if (scanning) return;
-    dragging = { x: event.clientX, y: event.clientY };
-    preview.setPointerCapture(event.pointerId);
-  });
-  preview.addEventListener("pointermove", event => {
-    if (!dragging || scanning) return;
-    aim.x = Math.max(-90, Math.min(90, aim.x + event.clientX - dragging.x));
-    aim.y = Math.max(-60, Math.min(60, aim.y + event.clientY - dragging.y));
-    dragging = { x: event.clientX, y: event.clientY };
-    updateAim();
-  });
-  preview.addEventListener("lostpointercapture", () => { dragging = null; });
-  preview.addEventListener("keydown", event => {
-    if (scanning || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
-    event.preventDefault();
-    aim.x = Math.max(-90, Math.min(90, aim.x + (event.key === "ArrowRight" ? 10 : event.key === "ArrowLeft" ? -10 : 0)));
-    aim.y = Math.max(-60, Math.min(60, aim.y + (event.key === "ArrowDown" ? 10 : event.key === "ArrowUp" ? -10 : 0)));
-    updateAim();
-  });
   function collect(site) {
     setMessage(copy.scanning);
     scanning = true;
     $("scan-start").disabled = true;
-    $("scan-instruction").textContent = "Collecting light pattern…";
+    $("scan-start").textContent = "Scanner collecting…";
+    $("pip-continue").textContent = "Cancel scan";
+    $("scan-instruction").textContent = "Equipment placed · collecting light pattern…";
     radio.classList.add("is-scanning");
     signal("expeditionscan", { active: true, id: site.id, progress: 0 });
-    animation = { elapsed: 0, duration: 3000,
+    animation = { elapsed: 0, duration: 4000,
       paint(progress) {
         $("scan-progress").value = progress;
         signal("expeditionscan", { active: true, id: site.id, progress });
@@ -274,7 +284,55 @@ const ExpeditionUI = (() => {
       done() { update(Mission1.observe(state, site.id)); showFinding(site); }
     };
   }
-  $("scan-start").onclick = () => { if (scanSite && !scanning && Math.hypot(aim.x, aim.y) <= 15) collect(scanSite); };
+  $("scan-start").onclick = () => {
+    if (!scanSite || scanning) return;
+    const site = scanSite;
+    if (state.deployed.includes(site.id)) { collect(site); return; }
+    setMessage("Setting the scanner down. Its legs are unfolding around the sample. Almost ready!");
+    $("scan-instruction").textContent = "Unfolding legs · settling onto the ground…";
+    radio.classList.add("is-scanning");
+    startDeployment(site.id, () => {
+      update(Mission1.deploy(state, site.id));
+      signal("expeditiondeploy", { active: false });
+      collect(site);
+    });
+  };
+  function showFieldReadings() {
+    showRadio("Your portable field screen", copy.reviewReady, {
+      confirm: { label: state.reviewed ? "Return to the outpost" : "Evidence reviewed · prepare report", action: () => {
+        update(Mission1.review(state));
+        radio.close();
+      } }
+    });
+    radio.classList.add("is-field-screen");
+    $("evidence-review").hidden = false;
+    $("evidence-review").innerHTML = `<div class="screen-link-status">GROUND SCANNERS CONNECTED · 2 READINGS</div>` +
+      Object.values(Mission1.sites).map(site => `<article><div class="sample-visual sample-${site.id}" role="img" aria-label="Illustrative ${site.name.toLowerCase()} sample"></div><h3>${site.name}</h3><p>${site.reading}</p><div class="pattern-bars pattern-${site.id}" aria-hidden="true"></div></article>`).join("") +
+      `<p class="training-note screen-note">Illustrative training patterns · simulated readings</p><p class="review-conclusion">${Mission1.report}</p>`;
+  }
+  function inspectScreen() {
+    if (state.observations.length < 2) {
+      showRadio("Our screen is packed and ready", "Place a scanner at each sample first. Once both readings arrive, we can unfold this screen and compare them.");
+      return;
+    }
+    if (state.screenDeployed) { showFieldReadings(); return; }
+    showRadio("Set up your field screen", "Both scanners have sent their findings! Set this portable display on the marked ground, open its stand, and take a closer look.", {
+      confirm: { label: "Place screen on the ground", action: () => {
+        scanSite = Mission1.fieldScreen;
+        $("scan-panel").hidden = false;
+        $("scan-preview").hidden = true;
+        $("scan-start").hidden = true;
+        $("scan-progress").value = 0;
+        $("scan-instruction").textContent = "Opening kickstand · connecting both scanners…";
+        setMessage("The stand is opening. Our two scanners are connecting to the screen!");
+        startDeployment("field-screen", () => {
+          update(Mission1.deployScreen(state));
+          showFieldReadings();
+        });
+      } }
+    });
+    signal("expeditiondeploy", { active: true, id: "field-screen", preview: true, progress: 0 });
+  }
   function celebration() {
     showRadio("Earth received our finding!", copy.celebration);
     $("pip-continue").textContent = "View discovery journal";
@@ -285,8 +343,7 @@ const ExpeditionUI = (() => {
   }
   function sendReport() {
     const total = Object.keys(Mission1.sites).length;
-    if (state.observations.length !== total || state.reported) return;
-    update(Mission1.review(state));
+    if (state.observations.length !== total || !state.reviewed || state.reported) return;
     update(Mission1.submit(state));
     store.saveJournal(state);
     showRadio("Sending our finding home", copy.sending);
@@ -299,20 +356,17 @@ const ExpeditionUI = (() => {
       done: celebration
     };
   }
-  function inspectSite(id, options) {
-    const site = Object.hasOwn(Mission1.sites, id) ? Mission1.sites[id] : null;
-    if (site) {
-      if (state.observations.includes(id)) { showFinding(site); return; }
-      beginScan(site);
-      if (options.aligned) { aim = { x: 0, y: 0 }; updateAim(); collect(site); }
+  function inspectSite(id) {
+    if (Object.hasOwn(Mission1.sites, id)) {
+      const site = Mission1.sites[id];
+      if (state.observations.includes(id)) showFinding(site);
+      else beginScan(site);
+    } else if (id === "field-screen") {
+      inspectScreen();
     } else if (id === "communications") {
       if (state.reported) { celebration(); return; }
-      const ready = state.observations.length === Object.keys(Mission1.sites).length;
-      showRadio(copy.reviewTitle, ready ? copy.reviewReady : copy.reviewWaiting, ready ? { confirm: { label: "Ready to send", action: sendReport } } : {});
-      if (ready) {
-        $("evidence-review").hidden = false;
-        $("evidence-review").innerHTML = Object.values(Mission1.sites).map(site => `<article><span aria-hidden="true">${site.icon}</span><h3>${site.name}</h3><p>${site.reading}</p></article>`).join("") + `<p class="review-conclusion">${Mission1.report}</p>`;
-      }
+      showRadio(state.reviewed ? "Your report is ready" : "Check your field screen first", state.reviewed ? Mission1.report : copy.reviewWaiting,
+        state.reviewed ? { confirm: { label: "Send reviewed finding", action: sendReport } } : {});
     } else if (id === "habitat") {
       showRadio("A home a long way from home", copy.habitat);
     }
@@ -383,7 +437,18 @@ const ExpeditionUI = (() => {
   }
 
   function inspect(id, options = {}) {
-    if (id === "pip") hint();
+    if (id === "flag") {
+      if (flagPlanted) showRadio("A flag beside the outpost", "You planted this flag! Its horizontal support holds the fabric open here on the Moon.");
+      else if (flagPlanting) showRadio("The flag is settling into place", "Our pole is almost anchored. Look at the marked spot beside the habitat.");
+      else showRadio("Leave a flag at the outpost", "This spot is clear. Shall we anchor the pole and set up an American flag beside our habitat?", {
+        confirm: { label: "Plant American flag", action: () => {
+          if (flagPlanting || flagPlanted) return;
+          flagPlanting = true;
+          radio.close();
+          signal("expeditionplantflag", {});
+        } }
+      });
+    } else if (id === "pip") hint();
     else if (!power) inspectSite(id, options);
     else if (Rules.finished(state)) debrief();
     else if (Object.hasOwn(Mission2.stations, id)) openStation(id);
@@ -399,7 +464,7 @@ const ExpeditionUI = (() => {
   addEventListener("pageshow", event => {
     if (event.persisted) { state = store.load()?.state || state; render(); }
   });
-  return { get state() { return state; }, get finished() { return Rules.finished(state); },
+  return { get flagPlanted() { return flagPlanted; }, get state() { return state; }, get finished() { return Rules.finished(state); },
     next: () => Rules.next(state), isSite: id => !power && Object.hasOwn(Mission1.sites, id),
     needsScan: id => !power && Object.hasOwn(Mission1.sites, id) && !state.observations.includes(id),
     run: store, welcome, inspect, hint, celebration: finale, renderJournal, renderDebrief };
