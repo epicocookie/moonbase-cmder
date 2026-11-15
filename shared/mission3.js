@@ -7,28 +7,28 @@ const Mission3 = (() => {
   const CAVE_SCAN_COST = 2; // Deep cave exploration costs 2 energy instead of 1.
 
   const report =
-    "Subsurface lava tube mapped with 3 structural scans. Thick basalt overhead shields against radiation and micrometeorites, while shaded overhangs hold steady ~17 °C temperatures.";
+    "We found a cave with a rock roof and a sheltered spot. It could be worth studying as a future shelter.";
 
   const sites = {
     entrance: {
       id: "entrance",
-      name: "Pit skylight & seismic test",
+      name: "Cave entrance",
       x: 8,
       z: 1.5,
       icon: "🕳",
-      reading: "Seismic echo confirms hollow lava tube below",
-      response: "Surface vibrations scattered back from a void ahead! Walk down the crater ramp into the lava-tube entrance.",
+      reading: "A hollow space may be below us.",
+      response: "We found a clue! Follow the lights down the ramp.",
       fact: "In NASA-supported GEODES tests, scientists sent seismic vibrations into volcanic ground (like a CT scan) to detect hidden lava tubes below.",
       sourceTitle: "NASA Science — Hammering Out a Way to Find Shelter on the Moon and Mars",
       source: "https://science.nasa.gov/blogs/science-news/2025/09/26/hammering-out-shelter-on-moon-and-mars/"
     },
     chamber1: {
       id: "chamber1",
-      name: "Lava-tube overhang",
+      name: "Cave roof",
       x: 8,
       z: 8.8,
       icon: "🪨",
-      reading: "Cooled basalt ceiling arch verified",
+      reading: "A rock roof covers this spot.",
       response: "We're inside the ancient lava tube! Thick volcanic rock overhead blocks radiation and micrometeorites.",
       fact: "Lunar lava tubes formed when molten basaltic lava flowed beneath a cooled crust, leaving a hollow tunnel when the lava drained away.",
       sourceTitle: "NASA Science — Lunar Volcanism",
@@ -36,23 +36,23 @@ const Mission3 = (() => {
     },
     chamber2: {
       id: "chamber2",
-      name: "Thermal pocket",
+      name: "Warm spot",
       x: 8,
       z: 11.8,
       icon: "🌡",
-      reading: "Steady ~17 °C (63 °F) cave temperature",
-      response: "Temperatures here stay mild even as lunar shadow falls outside. One more structural scan deeper in.",
-      fact: "LRO Diviner data showed permanently shadowed pit overhangs stay near 63 °F (17 °C), compared to 260 °F (127 °C) days and −280 °F (−173 °C) nights on the surface.",
+      reading: "This sheltered spot feels warmer.",
+      response: "Our training sensor shows a mild sheltered pocket here. One more structural scan deeper in.",
+      fact: "LRO Diviner research found sheltered areas in a studied lunar pit near 63 °F (17 °C), compared to 260 °F (127 °C) days and −280 °F (−173 °C) nights on the surface.",
       sourceTitle: "NASA — LRO Finds Lunar Pits Harbor Comfortable Temperatures",
       source: "https://www.nasa.gov/solar-system/nasas-lro-finds-lunar-pits-harbor-comfortable-temperatures/"
     },
     chamber3: {
       id: "chamber3",
-      name: "Deep radar chamber",
+      name: "Deep tunnel",
       x: 8,
       z: 14.8,
       icon: "📡",
-      reading: "Subsurface conduit extends >60 m (200 ft)",
+      reading: "The tunnel may continue farther.",
       response: "All 3 structural scans complete! Radio signals are blocked by the rock roof—walk back up to Surface Comms to transmit.",
       fact: "Re-analyzing LRO Mini-RF radar data from the Mare Tranquillitatis pit revealed an underground cave extending more than 200 feet from the pit base.",
       sourceTitle: "NASA Science — New Evidence Adds to Findings Hinting at Network of Caves on Moon",
@@ -96,16 +96,16 @@ const Mission3 = (() => {
       return null;
     }
 
-    return {
-      shift: value.shift,
-      energy: value.energy,
-      oxygen: value.oxygen,
-      caveLocated: value.caveLocated,
-      scans: [...value.scans],
-      reported: value.reported,
-      failed: value.failed,
-      failReason: typeof value.failReason === "string" ? value.failReason.slice(0, 160) : ""
-    };
+    if ((!value.caveLocated && (value.scans.length || value.shift || value.reported)) ||
+        value.shift !== value.scans.length + (value.reported ? 1 : 0) ||
+        (value.failed && value.reported)) return null;
+    // Rebuild resource totals from recorded actions, including older saves.
+    let restored = create();
+    if (value.caveLocated) restored = locateCave(restored);
+    for (const id of value.scans) restored = scan(restored, id);
+    if (value.reported) restored = submit(restored);
+    if (value.failed !== restored.failed) return null;
+    return restored;
   }
 
   function isFinished(state) {
@@ -133,7 +133,7 @@ const Mission3 = (() => {
     if (isFinished(state) || state.caveLocated) return state;
     return applyOutcome({
       ...state,
-      energy: Math.max(0, state.energy - SURFACE_COST),
+      energy: Math.min(MAX_ENERGY, state.energy + getSolarEnergy(0)) - SURFACE_COST,
       caveLocated: true
     });
   }
@@ -149,8 +149,7 @@ const Mission3 = (() => {
       return state;
     }
 
-    const solar = getSolarEnergy(state.shift);
-    const nextEnergy = Math.min(MAX_ENERGY, state.energy + solar) - CAVE_SCAN_COST;
+    const nextEnergy = state.energy - CAVE_SCAN_COST;
     const oxygenDelta = SHIFTS[state.shift] === "shadow" ? -1 : 0;
     const nextOxygen = Math.max(0, Math.min(MAX_OXYGEN, state.oxygen + oxygenDelta));
 
@@ -188,17 +187,15 @@ const Mission3 = (() => {
     if (!state.caveLocated) return sites.entrance;
     const nextId = CAVE_SITES.find(id => !state.scans.includes(id));
     if (nextId) return sites[nextId];
-    return { id: "communications", name: "Surface communications", x: 0, z: -4 };
+    return { id: "communications", name: "Base radio", x: 0, z: -4 };
   }
 
   function objective(state) {
-    if (state.failed) return `Mission failed: ${state.failReason}`;
-    if (state.reported) return "Report transmitted from the surface! Cave mission complete.";
-    if (!state.caveLocated) return "Locate the cave skylight on the surface (costs 1 energy).";
-    if (state.scans.length < CAVE_SITES.length) {
-      return `Collect structural scan ${state.scans.length + 1} of 3 at ${next(state).name} (costs 2 energy).`;
-    }
-    return "All 3 cave scans done! Return to surface communications to send 1 report (costs 1 energy).";
+    if (state.failed) return "Time to try again. Ask Pip for help.";
+    if (state.reported) return "Your findings reached Earth. Great exploring!";
+    if (!state.caveLocated) return "Follow the marker to the cave entrance.";
+    if (state.scans.length < CAVE_SITES.length) return `Follow the lights. Scan the ${next(state).name.toLowerCase()}.`;
+    return "Go back to base and send your findings.";
   }
 
   return {
@@ -213,6 +210,7 @@ const Mission3 = (() => {
     create,
     restore,
     isFinished,
+    finished: isFinished,
     locateCave,
     scan,
     submit,

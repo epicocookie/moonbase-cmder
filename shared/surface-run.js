@@ -43,6 +43,9 @@ function createRun(rules, key, journalKey) {
     get sessionSaved() { return sessionSaved; }, get journalSaved() { return journalSaved; },
     checkpoint(pose) { if (run) { run.pose = pose; save(); } } };
 }
-const surfaceRun = createRun(Mission1, "moonbase.expedition.mission1.v2", "moonbase.journal.mission1.v1");
+const surfaceRun = typeof Mission1 === "undefined" ? null : createRun(Mission1, "moonbase.expedition.mission1.v2", "moonbase.journal.mission1.v1");
 const mission2Run = typeof Mission2 === "undefined" ? null :
   createRun(Mission2, "moonbase.expedition.mission2.v1", "moonbase.outcome.mission2.v1");
+
+const mission3Run = typeof Mission3 === "undefined" ? null :
+  createRun(Mission3, "moonbase.expedition.mission3.v1", "moonbase.outcome.mission3.v1");
