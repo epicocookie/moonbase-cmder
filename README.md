@@ -148,3 +148,8 @@ Science links open NASA separately; gameplay does not require a CDN request.
 The shorter prompts show the next task first. Children can open **How to play**
 for controls or **Curious? Learn more** for science. Mission 3's detailed resource
 math is available under **Battery and air details**.
+
+## Project demonstration
+
+Watch the [27-second project demo](demo/). It uses screenshots of the working
+game with captions and an original, AI-assisted instrumental soundtrack.

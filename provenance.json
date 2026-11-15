@@ -21,7 +21,7 @@
     "review_status": "Development included source checks, automated checks, and browser checks. This record does not assert independent human scientific review or organizer approval.",
     "runtime": "Pip is scripted; the game does not call a live AI model.",
     "raster_media": "The six NASA-source JPEGs below were downloaded from their publishers. No image-generation model was used to create those bundled files during this development work. The pre-existing favicon has unverified authorship.",
-    "audio": "No audio assets or generated speech are currently included."
+    "audio": "The game has no audio assets. The project demo MP4 includes an original, code-synthesized instrumental made with AI assistance; no generated speech is used."
   },
   "simulated_data": {
     "paths": ["shared/mission1.js", "shared/mission2.js", "shared/mission3.js", "shared/game.js"],
