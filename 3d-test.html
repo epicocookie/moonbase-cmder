@@ -22,7 +22,7 @@
   <section id="briefing">
     <small class="eyebrow">MISSION 01 / LUNAR OUTPOST</small>
     <h1>A clue<br>in the <em>cold.</em></h1>
-    <p>A curious signal. Two places to explore. Join Pip and investigate what could be hiding in the lunar shadows.</p>
+    <p>Carry your ground scanners into the field. Collect two readings, unfold your portable screen, and investigate a clue in the lunar shadows.</p>
     <div data-expedition-progress aria-label="Expedition progress"></div>
     <p class="safe-note"><span class="pip-avatar mini" aria-hidden="true"><i></i><i></i></span> Pip has your back. Take your time.</p>
     <button id="deploy" class="primary" disabled>Begin expedition <b>↘</b></button>
@@ -32,13 +32,13 @@
   </section>
   <button id="skip" hidden>Skip descent ↓</button>
   <section id="live" hidden aria-label="Expedition instruments">
-    <div id="telemetry"><strong id="observation-count">0 / 2 observations</strong><span>OUTPOST SYSTEMS STEADY</span></div>
+    <div id="telemetry"><strong id="observation-count">0 / 2 observations</strong><span id="equipment-status">2 scanners packed · field screen packed</span></div>
     <div class="objective" id="objective" aria-live="polite"></div>
     <div class="waypoint" aria-live="off"><span class="waypoint-arrow" id="waypoint-arrow" aria-hidden="true">↑</span><span id="waypoint-name"></span></div>
     <div class="camera-tools"><button id="view" title="Switch camera (V)">First person · V</button><button id="shift-lock" aria-pressed="false">Shift lock off</button><a class="credits-link" href="./credits.html" aria-label="Credits and AI assistance in code and visuals">AI-assisted · Credits</a></div>
     <div class="expedition-tools"><button type="button" data-hint>Ask Pip · Hint</button><button type="button" data-open-journal>Field journal</button><button type="button" id="return-pip">Return to Pip</button></div>
     <div id="reticle" aria-hidden="true"></div>
-    <p id="help"><span class="desktop">WASD move · Drag or arrows to aim · E scan / explore · V view · Shift lock/free mouse</span><span class="mobile">Move with arrows · Drag to look · Tap Explore</span></p>
+    <p id="help"><span class="desktop">WASD move · Drag or arrows to aim · E place / use · V view · Shift lock/free mouse</span><span class="mobile">Move with arrows · Drag to look · Tap Explore</span></p>
     <button id="use" hidden></button>
     <div id="pad" aria-label="Movement"><button data-key="KeyW" aria-label="Forward">↑</button><button data-key="KeyA" aria-label="Left">←</button><button data-key="KeyS" aria-label="Backward">↓</button><button data-key="KeyD" aria-label="Right">→</button></div>
   </section>

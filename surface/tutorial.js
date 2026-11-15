@@ -193,7 +193,8 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   function updateNavigation() {
     const next = ExpeditionUI.next();
     marker.visible = !ExpeditionUI.finished && !scanInProgress;
-    marker.position.set(next.x, groundHeight(next.x, next.z), next.z);
+    const markerX = next.x + (next.id === "field-screen" ? 1.1 : 0);
+    marker.position.set(markerX, groundHeight(markerX, next.z), next.z);
     const dx = next.x - suit.position.x, dz = next.z - suit.position.z;
     $("waypoint-name").textContent = `${next.name} · ${Math.round(Math.hypot(dx, dz))} m`;
     $("waypoint-arrow").style.transform = `rotate(${Math.atan2(dx, -dz) + yaw}rad)`;
@@ -208,7 +209,13 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     const aligned = !unscanned || scanAligned(nearby);
     $("reticle").classList.toggle("scan-ready", Boolean(unscanned && aligned));
     $("use").disabled = !aligned;
-    if (nearby) $("use").textContent = (unscanned ? aligned ? "Scan " : "Aim at " : nearby.id === "pip" ? "Talk to " : "Explore ") + nearby.name + " · E";
+    if (nearby) {
+      let action = "Explore ";
+      if (unscanned) action = aligned ? (ExpeditionUI.state.deployed.includes(nearby.id) ? "Resume scanner · " : "Place scanner · ") : "Aim at ";
+      else if (nearby.id === "field-screen") action = ExpeditionUI.state.screenDeployed ? "Open " : "Place ";
+      else if (nearby.id === "pip") action = "Talk to ";
+      $("use").textContent = action + nearby.name + " · E";
+    }
   }
   function scanAligned(station) {
     const sample = new THREE.Vector3(station.x, groundHeight(station.x, station.z) + 0.6, station.z);
@@ -228,7 +235,11 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     scanInProgress = detail.active;
     updateNavigation();
   });
-  for (const event of ["expeditionscan", "expeditiontransmit", "expeditionpip"]) document.addEventListener(event, requestFrame);
+  document.addEventListener("expeditiondeploy", ({ detail }) => {
+    scanInProgress = detail.active && !detail.preview;
+    updateNavigation();
+  });
+  for (const event of ["expeditionscan", "expeditiondeploy", "expeditiontransmit", "expeditionpip"]) document.addEventListener(event, requestFrame);
   document.addEventListener("expeditionchange", () => { updateNavigation(); requestFrame(); });
   $("return-pip").onclick = () => {
     suit.position.copy(start); suit.rotation.y = yaw = 0; pitch = -0.06;

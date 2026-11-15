@@ -19,20 +19,17 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
     assert.equal(await page.evaluate(() => ExpeditionUI.state.observations.length), 0);
 
     await page.locator('[data-inspect="shadow"]').first().click();
-    for (let step = 0; step < 4; step++) await page.locator("#scan-preview").press("ArrowLeft");
-    for (let step = 0; step < 3; step++) await page.locator("#scan-preview").press("ArrowDown");
     await page.locator("#scan-start").click();
-    await page.waitForFunction(() => document.querySelector("#scan-progress").value > 0);
+    await page.waitForFunction(() => ExpeditionUI.state.deployed.includes("shadow") && document.querySelector("#scan-progress").value > 0);
     await page.locator("#pip-continue").click();
     await page.locator("#pip-radio").waitFor({ state: "hidden" });
     // Wait beyond a full scan to catch an uncanceled completion callback.
-    await page.waitForTimeout(3200);
+    await page.waitForTimeout(4200);
+    assert.deepEqual(await page.evaluate(() => ExpeditionUI.state.deployed), ["shadow"]);
     assert.equal(await page.evaluate(() => ExpeditionUI.state.observations.length), 0);
 
     // The same sample must still be playable after cancellation.
     await page.locator('[data-inspect="shadow"]').first().click();
-    for (let step = 0; step < 4; step++) await page.locator("#scan-preview").press("ArrowLeft");
-    for (let step = 0; step < 3; step++) await page.locator("#scan-preview").press("ArrowDown");
     await page.locator("#scan-start").click();
     await page.waitForFunction(() => ExpeditionUI.state.observations.includes("shadow"));
     assert.deepEqual(errors, []);
