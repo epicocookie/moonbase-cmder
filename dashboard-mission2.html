@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="generator" content="ChatGPT/Codex and Claude Code — AI-assisted development">
+  <meta name="ai-assistance" content="AI-assisted mission design, code, dialogue, educational text, simplified resource rules, and tests. See credits.html and provenance.json.">
+  <link rel="describedby" href="credits.html" type="text/html"><link rel="describedby" href="provenance.json" type="application/json">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#091321">
+  <title>Moonbase Commander | Mission 2 dashboard</title><link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="classic/style.css"><link rel="stylesheet" href="shared/expedition.css">
+  <script src="shared/mission1.js" defer></script><script src="shared/mission2.js" defer></script><script src="shared/surface-run.js" defer></script><script src="shared/expedition-ui.js" defer></script>
+</head>
+<body data-expedition="2d" data-mission="2">
+  <div class="stars" aria-hidden="true"></div>
+  <main class="app field-dashboard">
+    <header class="topbar"><div class="brand"><span class="brand-icon">◈</span> MOONBASE <strong>COMMANDER</strong></div><nav class="summary-nav"><a class="summary-link" href="./index.html#missions">← Missions</a><a class="summary-link" href="./3d-mission2.html#resume">Continue in 3D ↗</a></nav></header>
+    <section class="intro" aria-labelledby="mission-title"><div><p class="eyebrow">MISSION 02 / BEYOND THE OUTPOST</p><h1 id="mission-title">Power through the <em>shadows.</em></h1><p class="intro-text">One sunny shift. Two dark ones. Keep the battery and oxygen above zero and send one science report home.</p></div><span class="pip-avatar hero-pip" aria-hidden="true"><i></i><i></i></span></section>
+    <section class="panel expedition-overview" aria-label="Shift progress"><div data-expedition-progress></div><div class="objective-row"><p id="objective" aria-live="polite"></p><span id="report-status">REPORT SENT: 0 / 1</span></div><div class="field-tools"><button type="button" data-hint>Ask Pip · Hint</button><button type="button" data-open-journal>Flight recorder</button><span>Walking and previewing are free · Only a confirmed command spends a shift</span></div></section>
+    <section class="panel map-panel" aria-labelledby="map-title"><div class="panel-heading"><span id="map-title">YOUR OUTPOST MAP</span><span>2D VIEW</span></div><p class="helper">Choose a station to preview its commands. Closing a preview spends no shift.</p>
+      <div class="field-map" aria-label="Interactive training outpost map">
+        <svg class="map-paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M 24 72 L 62 58 M 24 72 L 33 22 M 62 58 L 33 22"/></svg>
+        <button class="map-stop map-habitat" data-inspect="habitat" type="button"><span>⌂</span><b>Habitat</b><small>Hold steady or save power</small></button>
+        <button class="map-stop map-uplink" data-inspect="communications" type="button"><span>↗</span><b>Communications</b><small>Send the science report</small></button>
+        <button class="map-stop map-pip" data-inspect="pip" type="button"><span class="pip-avatar mini" aria-hidden="true"><i></i><i></i></span><b>Ask Pip</b><small>Your exploration buddy</small></button>
+      </div><p class="training-note">Illustrative map of an imagined lunar outpost · simplified training units</p>
+    </section>
+    <section class="panel mission-panel power-forecast" aria-labelledby="forecast-title"><div class="panel-heading"><span id="forecast-title">01 / SHIFT FORECAST</span><span id="shift-label">SHIFT 1 OF 3</span></div><div class="forecast-note"><span class="small-star">✳</span> <span id="forecast-note">Solar panels add +4 energy this shift.</span></div></section>
+    <section class="observations-grid" aria-label="Outpost resources">
+      <article class="panel battery-panel"><div class="panel-heading"><span>02 / POWER RESERVES</span><span class="metric-tag">LIVE</span></div><div class="metric-row"><div><span class="metric-number" id="battery">3</span><span class="metric-unit"> / 9 units</span></div><span class="metric-symbol">ϟ</span></div><div class="meter" aria-hidden="true"><div id="battery-bar" style="width:33.33%"></div></div><p class="metric-note">Hold steady: 2 energy · Save power: 1 · Send report: 4</p></article>
+      <article class="panel oxygen-panel"><div class="panel-heading"><span>03 / LIFE SUPPORT</span><span class="metric-tag">CREW SAFE</span></div><div class="metric-row"><div><span class="metric-number" id="oxygen">3</span><span class="metric-unit"> / 3 oxygen safety</span></div><span class="metric-symbol oxygen-symbol">◉</span></div><div class="meter oxygen-meter" aria-hidden="true"><div id="oxygen-bar" style="width:100%"></div></div><p class="metric-note">Save power lowers oxygen safety by <b>1</b>. Other commands restore 1.</p></article>
+    </section>
+    <section class="panel log-panel" aria-labelledby="log-title"><div class="panel-heading"><span>04 / MISSION LOG</span><span class="green-text">● CONNECTION ACTIVE</span></div><h2 id="log-title">Flight recorder</h2><div class="log" id="flight-log" aria-live="polite"></div></section>
+    <footer>Educational training mission · Simplified rules, not a lunar operations simulator · <a href="./credits.html">AI-assisted · Credits</a> · <a href="./classic-mission.html">Classic survival challenge</a></footer>
+  </main>
+</body>
+</html>

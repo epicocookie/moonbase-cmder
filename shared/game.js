@@ -1,28 +1,7 @@
-//mission 01
-const SHIFTS = ["sunlight", "shadow", "shadow"];
-const MAX_BATTERY = 9;
-const MAX_OXYGEN = 3; //limits
-
-
-function getSolarEnergy(shiftIdx) {
-  if (SHIFTS[shiftIdx] === "sunlight") {
-    return 4;
-  } 
-  else {
-    return 0;
-  }
-}
-
-function getBatteryCost(action) {
-  if (action == "report") return 4;
-  else if (action == "hold") return 2;
-  else if (action == "save") return 1; //lower power usage
-}
-
-function getOxygenChange(action) {
-  if (action==="save") return -1;
-  else return 1; //cuz ur spending higher power consumption for such
-}
+// Classic survival page. The shift rules live in shared/mission2.js so every view agrees.
+const SHIFTS = Mission2.shifts;
+const MAX_BATTERY = Mission2.maxBattery;
+const MAX_OXYGEN = Mission2.maxOxygen;
 
 function newMission() {
   return {shift: 0, battery: 3, oxygen: 3, reports: 0, finished: false };
@@ -85,30 +64,22 @@ function finish(won, explanation) {
 }
 
 function takeAction(action) {
-  if (mission.finished || (action === "report" && mission.reports > 0)) return;
-
-  
-  const solar = getSolarEnergy(mission.shift);
-  const batteryCost = getBatteryCost(action);
-  const oxygenChange = getOxygenChange(action);
-
-
-  const nextBattery = Math.min(MAX_BATTERY, mission.battery + solar) - batteryCost;
-  const nextOxygen = Math.min(MAX_OXYGEN, mission.oxygen + oxygenChange);
+  const result = Mission2.preview({ ...mission, reported: mission.reports > 0, outcome: mission.finished ? "ended" : null }, action);
+  if (!result) return;
 
   const labels = { report: "Sent report", hold: "Held steady", save: "Saved power" };
-  addLog(`${labels[action]}. Solar +${solar}, energy −${batteryCost}, oxygen ${oxygenChange > 0 ? "+" : ""}${oxygenChange}. Battery ${Math.max(0, nextBattery)}, oxygen ${nextOxygen}.`);
-  mission.battery = Math.max(0, nextBattery);
-  mission.oxygen = Math.max(0, nextOxygen);
+  addLog(`${labels[action]}. Solar +${result.solar}, energy −${result.cost}, oxygen ${result.oxygenChange > 0 ? "+" : ""}${result.oxygenChange}. Battery ${result.battery}, oxygen ${result.oxygen}.`);
+  mission.battery = result.battery;
+  mission.oxygen = result.oxygen;
   if (action === "report") mission.reports++;
   mission.shift++;
 
-  if (nextBattery <= 0) {
+  if (result.outcome === "power") {
     finish(false, "Power reserves ran out. Try saving energy before the dark shifts.");
-  } else if (nextOxygen <= 0) {
+  } else if (result.outcome === "oxygen") {
     finish(false, "Life support fell too low. Saving power has a human cost.");
-  } else if (mission.shift === SHIFTS.length) {
-    finish(mission.reports >= 1, mission.reports >= 1 ?
+  } else if (result.outcome) {
+    finish(result.outcome === "success", result.outcome === "success" ?
       "Your crew survived all three shifts and transmitted its science report. Great command decisions!" :
       "Your crew survived, but you never transmitted a science report. Try again!");
   } else {

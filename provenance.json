@@ -4,7 +4,7 @@
   "updated": "2026-11-15",
   "disclosure_page": "credits.html",
   "ai_assistance": {
-    "tools": ["ChatGPT", "Codex"],
+    "tools": ["ChatGPT", "Codex", "Claude Code"],
     "extent": "Substantial code and content were generated or revised with AI assistance; existing team work is also present.",
     "activities": [
       "Mission brainstorming and refinement",
@@ -12,20 +12,22 @@
       "Procedural 3D geometry, scanner and transmission animations, equipment detail, and interface visuals through code",
       "Pip dialogue, mission briefings, and educational text",
       "Fictional training scanner readings and report wording",
-      "Documentation and automated test development"
+      "Documentation and automated test development",
+      "Mission 2 (Power Through the Shadows): shared shift-rule extraction, station command panels, dialogue and debriefs, 2D and 3D pages, menu wiring, tests, and documentation, written with Claude Code (Anthropic)"
     ],
-    "code_and_content_paths": ["index.html", "dashboard.html", "3d-test.html", "classic-mission.html", "launch/", "surface/", "shared/", "tests/", "docs/", "README.md", "credits.html"],
-    "human_direction": "The team supplied the goal of inspiring children through space exploration and selected the audience, safe expedition, robot companion, and journal reward.",
+    "code_and_content_paths": ["index.html", "dashboard.html", "3d-test.html", "dashboard-mission2.html", "3d-mission2.html", "classic-mission.html", "launch/", "surface/", "shared/", "tests/", "docs/", "README.md", "credits.html"],
+    "human_direction": "The team supplied the goal of inspiring children through space exploration and selected the audience, safe expedition, robot companion, and journal reward. The team specified Mission 2's rules, costs, worked runs and release requirements in its release guide.",
     "review_status": "Development included source checks, automated checks, and browser checks. This record does not assert independent human scientific review or organizer approval.",
     "runtime": "Pip is scripted; the game does not call a live AI model.",
     "raster_media": "The six NASA-source JPEGs below were downloaded from their publishers. No image-generation model was used to create those bundled files during this development work. The pre-existing favicon has unverified authorship.",
     "audio": "No audio assets or generated speech are currently included."
   },
   "simulated_data": {
-    "paths": ["shared/mission1.js", "shared/game.js"],
+    "paths": ["shared/mission1.js", "shared/mission2.js", "shared/game.js"],
     "provenance": "AI-assisted authored training values and simplified game rules, not live NASA measurements.",
     "readings": ["Ice-like light pattern detected", "Rock-like light pattern detected"],
-    "geography": "Authored fictional outpost, not a surveyed NASA landing site."
+    "geography": "Authored fictional outpost, not a surveyed NASA landing site.",
+    "mission2": "Simplified training units (battery 3/9, oxygen safety 3/3, +4 solar in sunlight) taken from the team's classic survival rules; not a model of real lunar power or life support."
   },
   "assets": [
     {"path":"launch/assets/moon-color.jpg","origin":"NASA-source map","credit":"NASA/GSFC/Arizona State University","source_page":"https://svs.gsfc.nasa.gov/4720/","source_file":"https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_2k.jpg","modifications":["Mapped onto a globe with presentation lighting and accelerated rotation"],"ai_image_generation_in_this_work":false},

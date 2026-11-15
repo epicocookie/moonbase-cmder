@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="generator" content="ChatGPT/Codex and Claude Code — AI-assisted development">
+  <meta name="ai-assistance" content="AI-assisted mission design, code, procedural visuals, dialogue, educational text, simplified resource rules, and tests. See credits.html and provenance.json.">
+  <link rel="describedby" href="credits.html" type="text/html"><link rel="describedby" href="provenance.json" type="application/json">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0b1015">
+  <link rel="icon" href="favicon.ico"><title>Moonbase Commander · Power through the shadows</title>
+  <link rel="stylesheet" href="surface/surface.css"><link rel="stylesheet" href="shared/expedition.css">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}</script>
+  <script src="shared/mission1.js" defer></script><script src="shared/mission2.js" defer></script><script src="shared/surface-run.js" defer></script><script src="shared/expedition-ui.js" defer></script>
+  <script type="module">
+    import("./surface/scene3d.js").catch(error => {
+      document.querySelector("#loading").textContent = "The surface is unavailable. You can still command the outpost in the 2D dashboard above.";
+      console.error(error);
+    });
+  </script>
+</head>
+<body data-expedition="3d" data-mission="2" data-phase="briefing">
+  <main id="scene" aria-label="Interactive lunar training outpost"></main>
+  <header><span class="brand"><i></i> Moonbase <strong>Commander</strong></span><nav class="surface-nav"><a href="./index.html#missions">← Missions</a><a href="./dashboard-mission2.html">2D dashboard ↗</a></nav></header>
+  <section id="briefing">
+    <small class="eyebrow">MISSION 02 / BEYOND THE OUTPOST</small>
+    <h1>Power through<br>the <em>shadows.</em></h1>
+    <p>One sunny shift, then two dark ones. Command the outpost from the Habitat and Communications, and keep your crew powered until sunrise.</p>
+    <div data-expedition-progress aria-label="Shift progress"></div>
+    <p class="safe-note"><span class="pip-avatar mini" aria-hidden="true"><i></i><i></i></span> Walking and previewing are free. Only a confirmed command spends a shift.</p>
+    <button id="deploy" class="primary" disabled>Begin mission <b>↘</b></button>
+    <p id="loading" role="status">Preparing your landing…</p>
+    <p class="training-note">An imagined polar outpost · simplified training units</p>
+    <p><a class="credits-link" href="./credits.html">AI-assisted · Credits</a></p>
+  </section>
+  <button id="skip" hidden>Skip descent ↓</button>
+  <section id="live" hidden aria-label="Outpost instruments">
+    <div id="telemetry"><strong id="power-status">SHIFT 1 / 3</strong><span id="report-status">REPORT SENT: 0 / 1</span></div>
+    <div class="objective" id="objective" aria-live="polite"></div>
+    <div class="waypoint" aria-live="off"><span class="waypoint-arrow" id="waypoint-arrow" aria-hidden="true">↑</span><span id="waypoint-name"></span></div>
+    <div class="camera-tools"><button id="view" title="Switch camera (V)">First person · V</button><button id="shift-lock" aria-pressed="false" hidden>Shift lock</button><a class="credits-link" href="./credits.html" aria-label="Credits and AI assistance in code and visuals">AI-assisted · Credits</a></div>
+    <div class="expedition-tools"><button type="button" data-hint>Ask Pip · Hint</button><button type="button" data-open-journal>Flight recorder</button><button type="button" id="return-pip">Return to Pip</button><button type="button" id="toggle-pad" aria-pressed="false">Movement pad</button></div>
+    <div id="reticle" aria-hidden="true"></div>
+    <p id="help"><span class="desktop">WASD move · Drag or arrows to aim · E use a station · V view</span><span class="mobile">Move with arrows · Drag to look · Tap Explore</span></p>
+    <button id="use" hidden></button>
+    <div id="pad" aria-label="Movement"><button data-key="KeyW" aria-label="Forward">↑</button><button data-key="KeyA" aria-label="Left">←</button><button data-key="KeyS" aria-label="Backward">↓</button><button data-key="KeyD" aria-label="Right">→</button></div>
+  </section>
+</body>
+</html>

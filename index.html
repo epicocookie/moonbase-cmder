@@ -15,6 +15,7 @@
   <link rel="preload" href="launch/assets/moon-color.jpg" as="image">
   <link rel="stylesheet" href="shared/expedition.css">
   <script src="shared/mission1.js" defer></script>
+  <script src="shared/mission2.js" defer></script>
   <script src="shared/surface-run.js" defer></script>
   <script src="shared/expedition-ui.js" defer></script>
   <script src="launch/menu.js" defer></script>
@@ -60,9 +61,15 @@
             <div class="mission-actions"><a class="button primary" id="play-3d" href="./3d-test.html?new=1"><span id="play-3d-label">Start mission in 3D</span><span aria-hidden="true">↗</span></a><a class="button" id="play-2d" href="./dashboard.html"><span id="play-2d-label">Open 2D dashboard</span><span aria-hidden="true">↗</span></a></div>
           </div>
         </article>
-        <article class="mission-card locked" aria-labelledby="mission-two-title">
-          <div class="mission-visual"><img src="launch/assets/mission-crater.jpg" alt="Shackleton Crater mosaic showing its crater rim and interior, from LROC and ShadowCam" loading="lazy" width="985" height="985"><span class="tag">Coming soon</span><span class="visual-number" aria-hidden="true">02</span><a class="image-credit" href="https://www.nasa.gov/missions/lro/nasa-moon-camera-mosaic-sheds-light-on-lunar-south-pole/" target="_blank" rel="noopener noreferrer">NASA / KARI / ASU · Shackleton ↗</a></div>
-          <div class="mission-content"><p class="mission-number">Mission 02</p><h2 id="mission-two-title">Beyond the outpost</h2><p>Your next assignment is on the horizon. More missions are being prepared.</p><div class="mission-meta"><span>Awaiting briefing</span></div><button class="button" type="button" disabled>Coming soon</button></div>
+        <article class="mission-card available" aria-labelledby="mission-two-title">
+          <div class="mission-visual"><img src="launch/assets/mission-crater.jpg" alt="Shackleton Crater mosaic showing its crater rim and interior, from LROC and ShadowCam" loading="lazy" width="985" height="985"><span class="tag" id="mission-two-status">Ready to deploy</span><span class="visual-number" aria-hidden="true">02</span><a class="image-credit" href="https://www.nasa.gov/missions/lro/nasa-moon-camera-mosaic-sheds-light-on-lunar-south-pole/" target="_blank" rel="noopener noreferrer">NASA / KARI / ASU · Shackleton ↗</a></div>
+          <div class="mission-content">
+            <p class="mission-number">Mission 02 · Engineering challenge</p>
+            <h2 id="mission-two-title">Beyond the outpost</h2>
+            <p>Power through the shadows. Command three lunar shifts, keep battery and oxygen above zero, and send one science report home.</p>
+            <div class="mission-meta"><span>3 shifts</span><span>2 resources</span><span>1 report</span></div>
+            <div class="mission-actions"><a class="button primary" id="play-3d-2" href="./3d-mission2.html?new=1"><span id="play-3d-2-label">Start mission in 3D</span><span aria-hidden="true">↗</span></a><a class="button" id="play-2d-2" href="./dashboard-mission2.html"><span id="play-2d-2-label">Open 2D dashboard</span><span aria-hidden="true">↗</span></a></div>
+          </div>
         </article>
         <article class="mission-card locked" aria-labelledby="mission-three-title">
           <div class="mission-visual"><img src="launch/assets/mission-orbiter.jpg" alt="Artist's rendering of NASA's Lunar Reconnaissance Orbiter above the Moon" loading="lazy" width="1240" height="510"><span class="tag">Coming soon</span><span class="visual-number" aria-hidden="true">03</span><a class="image-credit" href="https://astrobiology.nasa.gov/missions/lro/" target="_blank" rel="noopener noreferrer">NASA / GSFC · LRO illustration ↗</a></div>
@@ -70,8 +77,10 @@
         </article>
       </div>
       <details id="saved-journal" class="saved-journal" hidden><summary>Your discovery journal <span>Read your first lunar finding ↗</span></summary><div id="journal-content"></div><p id="journal-save-note" class="training-note"></p></details>
-      <div class="selection-note"><span>Mission 1 is available. Later missions are coming soon.</span><a class="text-link" href="./index.html">↶ Replay intro</a></div>
+      <details id="saved-debrief" class="saved-journal" hidden><summary>Your Mission 2 debrief <span>See how your last plan worked ↗</span></summary><div id="debrief-content"></div></details>
+      <div class="selection-note"><span>Missions 1 and 2 are available. Mission 3 is coming soon.</span><a class="text-link" href="./index.html">↶ Replay intro</a></div>
       <p class="selection-note" id="restart-options" hidden><span>Want a fresh start?</span><a class="text-link" href="./3d-test.html?new=1">Restart in 3D</a><a class="text-link" href="./dashboard.html?new=1">Restart in 2D</a></p>
+      <p class="selection-note" id="restart-two-options" hidden><span>Start Mission 2 over?</span><a class="text-link" href="./3d-mission2.html?new=1">Restart in 3D</a><a class="text-link" href="./dashboard-mission2.html?new=1">Restart in 2D</a></p>
       <noscript><p>Enable JavaScript to play a mission.</p></noscript>
     </section>
   </main>

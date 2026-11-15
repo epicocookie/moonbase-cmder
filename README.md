@@ -15,10 +15,11 @@ Currently in development.
 | --- | --- |
 | Intro and mission selection | [index.html](index.html), [launch/](launch/) |
 | Playable 2D dashboard | [dashboard.html](dashboard.html) shares Mission 1 progress with 3D |
+| Mission 2 | [dashboard-mission2.html](dashboard-mission2.html) (2D), [3d-mission2.html](3d-mission2.html) (3D), and rules in [shared/mission2.js](shared/mission2.js) |
 | Classic mission | [classic-mission.html](classic-mission.html) and [classic/](classic/) for its styles |
 | 3D tutorial | [3d-test.html](3d-test.html) and [surface/](surface/) for scene, movement, cameras, and styles |
 | Shared expedition | [shared/mission1.js](shared/mission1.js), [shared/expedition-ui.js](shared/expedition-ui.js), and [shared/surface-run.js](shared/surface-run.js) |
-| Standalone survival rules | [shared/game.js](shared/game.js), used only by the classic page |
+| Standalone survival page | [shared/game.js](shared/game.js), used only by the classic page; its shift math comes from [shared/mission2.js](shared/mission2.js) |
 | Guides and notes | [Classic mission](docs/classic-mission.md), [3D setup and controls](docs/surface-tutorial.md), [mission resources](docs/mission-resources.md) |
 
 ## Play locally
@@ -26,8 +27,8 @@ Currently in development.
 From this folder, run `python -m http.server 8127 --bind 127.0.0.1` and open
 [Moonbase Commander](http://127.0.0.1:8127/). No install or build step.
 
-The intro leads to mission selection. Mission 1 is playable in 3D or from the
-2D dashboard; Missions 2–3 are coming soon. Switch views during a run to continue
+The intro leads to mission selection. Missions 1 and 2 are playable in 3D or from
+their 2D dashboards; Mission 3 is coming soon. Switch views during a run to continue
 the same observations. Mission 1, **A Clue in the Cold**, is a safe expedition for
 ages 7–12: meet Pip, scan the shaded crater and sunlit reference in either order,
 align your scanner and watch each reading appear, then review your evidence at
@@ -45,8 +46,25 @@ the expedition still works; with all storage blocked, its completed journal is
 shown on the current page instead of navigating away. Old survival saves remain
 untouched. The legacy classic page remains a separate standalone game.
 
+**Mission 2, Power Through the Shadows** (menu card "Beyond the outpost"), is
+the engineering challenge from the team guide. The crew starts with 3 / 9 battery
+and 3 / 3 oxygen safety. Shift 1 is sunlit (+4 solar), shifts 2 and 3 are in shadow.
+At the **Habitat** choose Hold steady (2 energy, oxygen +1) or Save power (1 energy,
+oxygen −1); at **Communications** send the report once (4 energy, oxygen +1). Each
+station previews the exact result before you confirm, and closing a preview spends
+no shift. Survive all three shifts with the report sent to win. Battery or oxygen
+at 0 ends the run, and so does finishing without a report. The debrief names your
+plan, what happened and one change to try. Mission 2 has its own active run and
+last outcome. Switching views keeps the shift, resources, report and position, and
+replaying never touches the Mission 1 journal. It is offered directly from
+selection, so judges can try it without finishing Mission 1. In 3D the sunlight
+dims during the shadow shifts. The classic page now uses the same calculation.
+
 Run `node tests/mission-flow.cjs` for scan orders, report gating, view handoff,
-pose persistence, journal retention, replay, blocked storage, and classic win/loss.
+pose persistence, journal retention, replay, blocked storage, classic win/loss, and
+Mission 2's three worked runs, preview/confirm parity, saves and replay. Without a
+Node install, VS Code's bundled runtime works:
+`ELECTRON_RUN_AS_NODE=1 "<VS Code folder>/Code.exe" tests/mission-flow.cjs`.
 
 The surface is an authored training outpost, not a map of a real landing site.
 Scanner readings are simulated; the journal's short explanations link to NASA's
@@ -65,6 +83,8 @@ software notices, and a visible disclosure. [provenance.json](provenance.json)
 records the same assistance and asset origins as machine-readable metadata.
 
 Substantial code and game content were generated or revised with ChatGPT/Codex.
+Mission 2's code, dialogue, menu wiring, tests and this documentation were written
+with Claude Code (Anthropic), following the rules the team set in its release guide.
 This includes mission brainstorming and refinement, HTML/CSS/JavaScript,
 procedural 3D geometry and animations, UI design, Pip dialogue, educational text,
 simulated readings, documentation, and tests. The team supplied the goal of

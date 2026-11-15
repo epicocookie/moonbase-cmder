@@ -109,7 +109,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     aimCamera();
     checkStation();
     if (announce) {
-      if (ExpeditionUI.state.reported) ExpeditionUI.celebration();
+      if (ExpeditionUI.finished) ExpeditionUI.celebration();
       else ExpeditionUI.welcome();
     }
   }
@@ -187,8 +187,8 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
     updateNavigation();
   }
   function updateNavigation() {
-    const next = Mission1.next(ExpeditionUI.state);
-    marker.visible = !ExpeditionUI.state.reported && !scanInProgress;
+    const next = ExpeditionUI.next();
+    marker.visible = !ExpeditionUI.finished && !scanInProgress;
     marker.position.set(next.x, groundHeight(next.x, next.z), next.z);
     const dx = next.x - suit.position.x, dz = next.z - suit.position.z;
     $("waypoint-name").textContent = `${next.name} · ${Math.round(Math.hypot(dx, dz))} m`;
@@ -200,7 +200,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
       .sort((a, b) => Math.hypot(a.x - suit.position.x, a.z - suit.position.z) - Math.hypot(b.x - suit.position.x, b.z - suit.position.z))[0];
     nearby = next;
     $("use").hidden = !nearby;
-    const unscanned = nearby && Mission1.sites[nearby.id] && !ExpeditionUI.state.observations.includes(nearby.id);
+    const unscanned = nearby && ExpeditionUI.needsScan(nearby.id);
     const aligned = !unscanned || scanAligned(nearby);
     $("reticle").classList.toggle("scan-ready", Boolean(unscanned && aligned));
     $("use").disabled = !aligned;
@@ -213,7 +213,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   }
   function use() {
     if (!nearby || phase !== "walk" || $("use").disabled) return;
-    ExpeditionUI.inspect(nearby.id, { aligned: Boolean(Mission1.sites[nearby.id]) });
+    ExpeditionUI.inspect(nearby.id, { aligned: ExpeditionUI.isSite(nearby.id) });
   }
   $("use").onclick = use;
   document.addEventListener("expeditiondialog", event => {
@@ -229,7 +229,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   $("return-pip").onclick = () => {
     suit.position.copy(start); suit.rotation.y = yaw = 0; pitch = -0.06;
     setPhase("walk"); aimCamera(); checkStation(); updateNavigation();
-    surfaceRun.checkpoint({ x: suit.position.x, z: suit.position.z, yaw, pitch, third, shiftLocked });
+    ExpeditionUI.run.checkpoint({ x: suit.position.x, z: suit.position.z, yaw, pitch, third, shiftLocked });
     requestFrame();
   };
   $("toggle-pad").onclick = () => {
@@ -308,11 +308,11 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
   renderer.shadowMap.needsUpdate = true;
   addEventListener("pagehide", () => {
     if (phase === "walk" || phase === "station") {
-      surfaceRun.checkpoint({ x: suit.position.x, z: suit.position.z, yaw, pitch, third, shiftLocked });
+      ExpeditionUI.run.checkpoint({ x: suit.position.x, z: suit.position.z, yaw, pitch, third, shiftLocked });
     }
   });
   if (location.hash === "#resume") {
-    const saved = surfaceRun.load();
+    const saved = ExpeditionUI.run.load();
     if (saved) {
       land(false);
       const pose = saved.pose;
@@ -324,7 +324,7 @@ export function runTutorial({ THREE, scene, camera, renderer, groundHeight, stat
         aimCamera(); checkStation();
       }
       updateNavigation();
-      if (ExpeditionUI.state.reported) ExpeditionUI.celebration();
+      if (ExpeditionUI.finished) ExpeditionUI.celebration();
       else ExpeditionUI.welcome();
     }
   }

@@ -290,7 +290,9 @@ const sampleMaterials = {
 };
 const coldRim = new THREE.MeshStandardMaterial({ color: 0x8bd8e2, roughness: 0.45 });
 const instruments = new Map();
-for (const site of Object.values(Mission1.sites)) {
+// Mission 2 uses the Habitat and Communications consoles instead of scan instruments.
+const powerMission = document.body.dataset.mission === "2";
+for (const site of powerMission ? [] : Object.values(Mission1.sites)) {
   const instrument = new THREE.Group();
   instrument.position.set(site.x, groundHeight(site.x, site.z), site.z);
   const sample = detail(instrument, new THREE.DodecahedronGeometry(0.36, site.id === "shadow" ? 1 : 0), sampleMaterials[site.id], 0, 0.2, 0.12);
@@ -398,6 +400,16 @@ function animateEquipment(time, reduced) {
   eyes.color.setHex(speaking ? 0xbaffdd : 0x8ae5f1);
   for (const eye of pipEyes) eye.scale.y = speaking && !reduced && Math.sin(time * 1.6) > 0.98 ? 0.2 : 1;
   return !reduced && (speaking || transmitting || Boolean(scanEffect));
+}
+// In Mission 2 the sky follows the shift forecast: full sun first, then dim shadow shifts.
+const sunIntensity = sunlight.intensity;
+function followForecast(state) {
+  sunlight.intensity = Mission2.shifts[state.shift] === "shadow" ? sunIntensity * 0.3 : sunIntensity;
+  renderer.shadowMap.needsUpdate = true;
+}
+if (powerMission) {
+  followForecast(ExpeditionUI.state);
+  document.addEventListener("expeditionchange", ({ detail }) => followForecast(detail.state));
 }
 runTutorial({ THREE, scene, camera, renderer, groundHeight, stations, solids, marker, pipHead, animateEquipment });
 
